@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
@@ -23,6 +24,7 @@ namespace RaceTrack
         private Point _lapPoint;
 
         public ObservableCollection<LapTime> LapTimes { get; set; }
+        private DateTime? StartDate = null;
 
         public MainWindow()
         {
@@ -66,9 +68,12 @@ namespace RaceTrack
                 if (colorAtLapPoint > 0)
                 {
                     // Motion detected at lap point, register lap.
-                    AddLapTime();
-
-                    // TODO: Implement a cooldown mechanism here.
+                    // check that the last lap was at least 2 seconds ago
+                    if (LapTimes.Count == 0 || DateTime.Now - DateTime.Parse(LapTimes[LapTimes.Count - 1].Time) >
+                        TimeSpan.FromSeconds(1))
+                    {
+                        AddLapTime();
+                    }
                 }
 
                 _previousFrame = _frame.Clone();
@@ -91,7 +96,27 @@ namespace RaceTrack
         {
             Dispatcher.Invoke(() =>
             {
-                LapTimes.Add(new LapTime { LapNumber = LapTimes.Count + 1, Time = DateTime.Now.ToString("HH:mm:ss.fff") });
+                DateTime currentLapTime = DateTime.Now;
+
+                if (StartDate == null)
+                {
+                    StartDate = currentLapTime;
+                }
+
+                TimeSpan duration = currentLapTime - StartDate.Value;
+
+                if (LapTimes.Count == 0) // The first lap
+                {
+                    duration = TimeSpan.Zero;
+                }
+
+                LapTimes.Add(new LapTime
+                {
+                    LapNumber = LapTimes.Count, Time = currentLapTime.ToString("HH:mm:ss.fff"), Duration = duration
+                });
+
+                // Update the StartDate for the next lap:
+                StartDate = currentLapTime;
             });
         }
 
@@ -100,6 +125,7 @@ namespace RaceTrack
         {
             public int LapNumber { get; set; }
             public string Time { get; set; }
+            public TimeSpan Duration { get; set; }
         }
 
         // Ensure to stop the webcam when the window is closed

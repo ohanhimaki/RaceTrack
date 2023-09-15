@@ -16,7 +16,7 @@
                 <ListView.View>
                     <GridView>
                         <GridViewColumn Header="Lap Number" Width="100" DisplayMemberBinding="{Binding LapNumber}" />
-                        <GridViewColumn Header="Time" Width="100" DisplayMemberBinding="{Binding Time}" />
+                        <GridViewColumn Header="Duration" Width="100" DisplayMemberBinding="{Binding Duration}" />
                     </GridView>
                 </ListView.View>
             </ListView>
