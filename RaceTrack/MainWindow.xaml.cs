@@ -2,9 +2,11 @@
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using AForge.Video.DirectShow;
 using Emgu.CV;
+using Emgu.CV.Structure;
 
 namespace RaceTrack
 {
@@ -18,6 +20,7 @@ namespace RaceTrack
         private readonly VideoCapture _capture;
         private Mat _frame;
         private int imagecounter = 0;
+        private Point _lapPoint;
 
         public ObservableCollection<LapTime> LapTimes { get; set; }
 
@@ -43,28 +46,53 @@ namespace RaceTrack
             }
 
         }
-        
+
+        private Mat _previousFrame;
+
         private void Capture_ImageGrabbed(object sender, EventArgs e)
         {
             _capture.Retrieve(_frame);
-            
-            if (!_frame.IsEmpty)
-            {
 
+            if (!_frame.IsEmpty && _previousFrame != null)
+            {
+                Mat diff = new Mat();
+                CvInvoke.AbsDiff(_frame, _previousFrame, diff);
+                Mat grayDiff = new Mat();
+                CvInvoke.CvtColor(diff, grayDiff, Emgu.CV.CvEnum.ColorConversion.Bgr2Gray);
+                CvInvoke.Threshold(grayDiff, grayDiff, 25, 255, Emgu.CV.CvEnum.ThresholdType.Binary);
+
+                var grayImage = grayDiff.ToImage<Gray, byte>();
+                double colorAtLapPoint = grayImage[(int)_lapPoint.Y, (int)_lapPoint.X].Intensity;
+                if (colorAtLapPoint > 0)
+                {
+                    // Motion detected at lap point, register lap.
+                    AddLapTime();
+
+                    // TODO: Implement a cooldown mechanism here.
+                }
+
+                _previousFrame = _frame.Clone();
 
                 Dispatcher.Invoke(() =>
                     {
                         var bitmapSource = BitmapSourceConvert.ToBitmapSource(_frame);
-                        WebcamFeed.Source = (bitmapSource);
+                        WebcamFeed.Source = bitmapSource;
                     },
                     System.Windows.Threading.DispatcherPriority.Render);
+            }
+            else if (_previousFrame == null)
+            {
+                _previousFrame = _frame.Clone();
             }
         }
 
         // Mock method to simulate adding lap times (you'd have your actual logic here)
         private void AddLapTime()
         {
-            LapTimes.Add(new LapTime { LapNumber = LapTimes.Count + 1, Time = DateTime.Now.ToString("HH:mm:ss.fff") });
+            Dispatcher.Invoke(() =>
+            {
+                LapTimes.Add(new LapTime { LapNumber = LapTimes.Count + 1, Time = DateTime.Now.ToString("HH:mm:ss.fff") });
+            });
         }
 
         // This will be your model for each lap time
@@ -84,6 +112,11 @@ namespace RaceTrack
             {
                 videoSource.Stop();
             }
+        }
+        private void WebcamFeed_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            _lapPoint = e.GetPosition(WebcamFeed);
+            // You can optionally draw a visual indicator on the video feed for this point.
         }
         
 private BitmapSource ConvertBitmap(System.Drawing.Bitmap bitmap)
