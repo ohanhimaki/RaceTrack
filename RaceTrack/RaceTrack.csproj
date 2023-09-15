@@ -10,7 +10,13 @@
     <ItemGroup>
       <PackageReference Include="AForge" Version="2.2.5" />
       <PackageReference Include="AForge.Video.DirectShow" Version="2.2.5" />
+      <PackageReference Include="Emgu.CV" Version="4.8.0.5324" />
+      <PackageReference Include="Emgu.CV.runtime.windows" Version="4.8.0.5324" />
       <PackageReference Include="System.Drawing.Common" Version="7.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Resource Include="Resources\example.png" />
     </ItemGroup>
 
 </Project>

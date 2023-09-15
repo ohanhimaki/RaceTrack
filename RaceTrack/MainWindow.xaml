@@ -5,13 +5,11 @@
 
     <Grid>
         <!-- Webcam feed placeholder -->
-        <Image Name="WebcamFeed" Stretch="Fill" HorizontalAlignment="Left" VerticalAlignment="Top" />
+        <Image Name="WebcamFeed" Stretch="Fill" HorizontalAlignment="Left" VerticalAlignment="Top"/>
 
         <!-- Overlay for lap times -->
         <StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="10" Background="Black" Opacity="0.7">
             <TextBlock Text="Lap Times" Foreground="White" FontSize="18" FontWeight="Bold" Margin="10"/>
-
-            <Button Name="SaveImageButton" Click="SaveImageButton_Click" Content="Save Image" />
             <!-- List of lap times -->
             <ListView Name="LapTimesList">
                 <ListView.View>
