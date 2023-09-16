@@ -9,6 +9,7 @@ using System.Windows.Media;
 using AForge.Video.DirectShow;
 using Emgu.CV;
 using Emgu.CV.Structure;
+using RaceTrack.Core;
 using RaceTrack.Core.Models;
 using RaceTrack.Core.Helpers;
 
@@ -23,23 +24,17 @@ namespace RaceTrack
         private VideoCaptureDevice videoSource;
         private readonly VideoCapture _capture;
         private Mat _frame;
-        private int imagecounter = 0;
 
-        private DateTime? StartDate = null;
-        private bool RaceOngoing = false;
-        public PlayerDataContainer Player1Data { get; set; } = new PlayerDataContainer("Mario");
-        public PlayerDataContainer Player2Data { get; set; } = new PlayerDataContainer("Luigi");
         private bool settingPointForPlayer1 = false;
         private bool settingPointForPlayer2 = false;
-        public bool RaceIsStarting { get; set; }
-
+        public RaceManager RaceManager { get; set; } = new RaceManager(); 
         public MainWindow()
         {
             InitializeComponent();
 
             // Initialize the lap times collection
-            LapTimesListPlayer1.ItemsSource = Player1Data.LapTimes;
-            LapTimesListPlayer2.ItemsSource = Player2Data.LapTimes;
+            LapTimesListPlayer1.ItemsSource = RaceManager.Player1Data.LapTimes;
+            LapTimesListPlayer2.ItemsSource = RaceManager.Player2Data.LapTimes;
 
             try
             {
@@ -53,13 +48,6 @@ namespace RaceTrack
             {
                 MessageBox.Show(ex.Message);
             }
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected virtual void OnPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         private Mat _previousFrame;
@@ -76,8 +64,8 @@ namespace RaceTrack
                 CvInvoke.CvtColor(diff, grayDiff, Emgu.CV.CvEnum.ColorConversion.Bgr2Gray);
                 CvInvoke.Threshold(grayDiff, grayDiff, 25, 255, Emgu.CV.CvEnum.ThresholdType.Binary);
                 var grayImage = grayDiff.ToImage<Gray, byte>();
-                CheckLapPoint(Player1Data, grayImage);
-                CheckLapPoint(Player2Data, grayImage);
+                CheckLapPoint(RaceManager.Player1Data, grayImage);
+                CheckLapPoint(RaceManager.Player2Data, grayImage);
 
                 _previousFrame = _frame.Clone();
 
@@ -96,7 +84,7 @@ namespace RaceTrack
 
         private void CheckLapPoint(PlayerDataContainer playerData, Image<Gray, byte> grayImage)
         {
-            if (!RaceOngoing && !RaceIsStarting)
+            if (!RaceManager.RaceOngoing && !RaceManager.RaceIsStarting)
             {
                 return;
             }
@@ -113,7 +101,7 @@ namespace RaceTrack
                 double colorAtLapPoint = grayImage[fixedY, fixedX].Intensity;
                 if (colorAtLapPoint > 0)
                 {
-                    if (RaceIsStarting)
+                    if (RaceManager.RaceIsStarting)
                     {
                         WarnTooEarly(playerData);
                         return;
@@ -172,13 +160,13 @@ namespace RaceTrack
                 if (playerData.LapTimes.Count == 0) // The first lap
                 {
                     // startdate vs currentlaptime, tells reaction speed
-                    duration = currentLapTime - StartDate.Value;
+                    duration = currentLapTime - RaceManager.StartDate.Value;
                 }
 
                 playerData.LapTimes.Add(new LapTime
                 {
                     LapNumber = playerData.LapTimes.Count, Time = currentLapTime.ToString("HH:mm:ss.fff"),
-                    Duration = duration, TotalRaceDuration = currentLapTime - StartDate.Value
+                    Duration = duration, TotalRaceDuration = currentLapTime - RaceManager.StartDate.Value
                 });
 
                 playerData.LapStartTime = currentLapTime;
@@ -212,14 +200,14 @@ namespace RaceTrack
         {
             if (settingPointForPlayer1)
             {
-                Player1Data.LapPoint = position.ToNullableDrawingPoint(); 
+                RaceManager.Player1Data.LapPoint = position.ToNullableDrawingPoint(); 
                 Canvas.SetLeft(LapPointCirclePlayer1, position.X - (LapPointCirclePlayer1.Width / 2));
                 Canvas.SetTop(LapPointCirclePlayer1, position.Y - (LapPointCirclePlayer1.Height / 2));
                 LapPointCirclePlayer1.Visibility = Visibility.Visible;
             }
             else if (settingPointForPlayer2)
             {
-                Player2Data.LapPoint = position.ToNullableDrawingPoint();
+                RaceManager.Player2Data.LapPoint = position.ToNullableDrawingPoint();
                 Canvas.SetLeft(LapPointCirclePlayer2, position.X - (LapPointCirclePlayer2.Width / 2));
                 Canvas.SetTop(LapPointCirclePlayer2, position.Y - (LapPointCirclePlayer2.Height / 2));
                 LapPointCirclePlayer2.Visibility = Visibility.Visible;
@@ -232,7 +220,7 @@ namespace RaceTrack
         private async void StartRaceButton_Click(object sender, RoutedEventArgs e)
         {
             StartRaceButton.IsEnabled = false; // Disable button to prevent re-clicks during start
-            RaceIsStarting = true;
+            RaceManager.RaceIsStarting = true;
             Light1.Visibility = Visibility.Visible;
             Light2.Visibility = Visibility.Visible;
             Light3.Visibility = Visibility.Visible;
@@ -261,7 +249,7 @@ namespace RaceTrack
             Light3.Fill = Brushes.Gray;
             Light4.Fill = Brushes.Gray;
             Light5.Fill = Brushes.Gray;
-            RaceIsStarting = false;
+            RaceManager.RaceIsStarting = false;
             StartRace();
             await Task.Delay(2000);
             // hide lights
@@ -275,19 +263,19 @@ namespace RaceTrack
         private void UpdateRaceStatus()
         {
             bool isPlayer1Leading =
-                PlayerDataHelper.IsPlayer1Leading(Player1Data, Player2Data, out var timeDifferenceText);
+                PlayerDataHelper.IsPlayer1Leading(RaceManager.Player1Data, RaceManager.Player2Data, out var timeDifferenceText);
 
             Dispatcher.Invoke(() =>
             {
                 if (isPlayer1Leading)
                 {
-                    FirstPlaceText.Text = Player1Data.Name;
-                    SecondPlaceText.Text = Player2Data.Name;
+                    FirstPlaceText.Text = RaceManager.Player1Data.Name;
+                    SecondPlaceText.Text = RaceManager.Player2Data.Name;
                 }
                 else
                 {
-                    FirstPlaceText.Text = Player2Data.Name;
-                    SecondPlaceText.Text = Player1Data.Name;
+                    FirstPlaceText.Text = RaceManager.Player2Data.Name;
+                    SecondPlaceText.Text = RaceManager.Player1Data.Name;
                 }
 
                 TimeDifferenceText.Text = timeDifferenceText; // Format to two decimal places
@@ -298,15 +286,15 @@ namespace RaceTrack
         private void StartRace()
         {
             // Initialize race variables and start the race
-            StartDate = DateTime.Now;
-            RaceOngoing = true;
+            RaceManager.StartDate = DateTime.Now;
+            RaceManager.RaceOngoing = true;
             // Add any other logic to start the race
         }
 
         private void StopRace()
         {
-            StartDate = null;
-            RaceOngoing = false;
+            RaceManager.StartDate = null;
+            RaceManager.RaceOngoing = false;
             Dispatcher.Invoke(() => { StartRaceButton.IsEnabled = true; });
         }
     }
