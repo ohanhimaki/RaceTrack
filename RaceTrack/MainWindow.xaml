@@ -7,6 +7,10 @@
         <!-- Webcam feed placeholder -->
         
         <Image Name="WebcamFeed" MouseUp="WebcamFeed_MouseUp" Stretch="Fill" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        
+        <Canvas Name="OverlayCanvas" HorizontalAlignment="Left" VerticalAlignment="Top">
+            <Ellipse Name="LapPointCircle" Width="20" Height="20" Fill="Red" Visibility="Hidden"/>
+        </Canvas>
 
         <!-- Overlay for lap times -->
         <StackPanel VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="10" Background="Black" Opacity="0.7">

@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using AForge.Video.DirectShow;
@@ -21,10 +22,10 @@ namespace RaceTrack
         private readonly VideoCapture _capture;
         private Mat _frame;
         private int imagecounter = 0;
-        private Point _lapPoint;
 
         public ObservableCollection<LapTime> LapTimes { get; set; }
         private DateTime? StartDate = null;
+        private Point? _lapPoint = null; // Assuming you have this declared somewhere
 
         public MainWindow()
         {
@@ -64,15 +65,18 @@ namespace RaceTrack
                 CvInvoke.Threshold(grayDiff, grayDiff, 25, 255, Emgu.CV.CvEnum.ThresholdType.Binary);
 
                 var grayImage = grayDiff.ToImage<Gray, byte>();
-                double colorAtLapPoint = grayImage[(int)_lapPoint.Y, (int)_lapPoint.X].Intensity;
-                if (colorAtLapPoint > 0)
+                if (_lapPoint != null)
                 {
-                    // Motion detected at lap point, register lap.
-                    // check that the last lap was at least 2 seconds ago
-                    if (LapTimes.Count == 0 || DateTime.Now - DateTime.Parse(LapTimes[LapTimes.Count - 1].Time) >
-                        TimeSpan.FromSeconds(1))
+                    double colorAtLapPoint = grayImage[(int)_lapPoint.Value.Y, (int)_lapPoint.Value.X].Intensity;
+                    if (colorAtLapPoint > 0)
                     {
-                        AddLapTime();
+                        // Motion detected at lap point, register lap.
+                        // check that the last lap was at least 2 seconds ago
+                        if (LapTimes.Count == 0 || DateTime.Now - DateTime.Parse(LapTimes[LapTimes.Count - 1].Time) >
+                            TimeSpan.FromSeconds(1))
+                        {
+                            AddLapTime();
+                        }
                     }
                 }
 
@@ -141,8 +145,22 @@ namespace RaceTrack
         }
         private void WebcamFeed_MouseUp(object sender, MouseButtonEventArgs e)
         {
-            _lapPoint = e.GetPosition(WebcamFeed);
+            SetLapPoint(e.GetPosition(WebcamFeed));
             // You can optionally draw a visual indicator on the video feed for this point.
+        }
+
+
+        private void SetLapPoint(Point position)
+        {
+            _lapPoint = position;
+
+            // Position the circle at the lap point. Note that we're offsetting by half the width/height of the circle
+            // to ensure the point is in the center of the circle.
+            Canvas.SetLeft(LapPointCircle, position.X - (LapPointCircle.Width / 2));
+            Canvas.SetTop(LapPointCircle, position.Y - (LapPointCircle.Height / 2));
+
+            // Make the circle visible
+            LapPointCircle.Visibility = Visibility.Visible;
         }
         
 private BitmapSource ConvertBitmap(System.Drawing.Bitmap bitmap)
