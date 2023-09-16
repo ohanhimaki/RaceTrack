@@ -1,8 +1,7 @@
-﻿using System;
+﻿
 using System.Collections.ObjectModel;
-using System.Windows;
-
-namespace RaceTrack.Data;
+using System.Drawing;
+namespace RaceTrack.Core.Models;
 
 public class PlayerDataContainer
 {

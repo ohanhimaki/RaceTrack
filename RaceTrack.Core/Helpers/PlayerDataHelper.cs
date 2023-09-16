@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Linq;
-using RaceTrack.Data;
+using RaceTrack.Core.Models;
 
-namespace RaceTrack;
+namespace RaceTrack.Core.Helpers;
 
-internal static class PlayerDataHelper
+public static class PlayerDataHelper
 {
     public static bool IsPlayer1Leading(PlayerDataContainer player1Data, PlayerDataContainer player2Data,
         out string differenceMsg)

@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RaceTrack", "RaceTrack\RaceTrack.csproj", "{52DF8177-DAF1-4D05-ACAD-5C1DDEBC288D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RaceTrack.Core", "RaceTrack.Core\RaceTrack.Core.csproj", "{F59966C6-420C-4D08-AAB0-D50C3B476D7E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{52DF8177-DAF1-4D05-ACAD-5C1DDEBC288D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{52DF8177-DAF1-4D05-ACAD-5C1DDEBC288D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{52DF8177-DAF1-4D05-ACAD-5C1DDEBC288D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F59966C6-420C-4D08-AAB0-D50C3B476D7E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F59966C6-420C-4D08-AAB0-D50C3B476D7E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F59966C6-420C-4D08-AAB0-D50C3B476D7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F59966C6-420C-4D08-AAB0-D50C3B476D7E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

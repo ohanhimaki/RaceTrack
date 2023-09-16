@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace RaceTrack.Data;
+namespace RaceTrack.Core.Models;
 
 public class LapTime
 {
