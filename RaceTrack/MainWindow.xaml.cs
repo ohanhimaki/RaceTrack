@@ -104,7 +104,15 @@ namespace RaceTrack
             }
                 if (playerData.LapPoint != null)
                 {
-                    double colorAtLapPoint = grayImage[(int)playerData.LapPoint.Value.Y, (int)playerData.LapPoint.Value.X].Intensity;
+                    
+                    // caltulate the multiplier for the x and y axis
+                    var yMultiplier = grayImage.Height / WebcamFeed.ActualHeight;
+                    var xMultiplier = grayImage.Width / WebcamFeed.ActualWidth;
+                    
+                    var fixedY = (int) (playerData.LapPoint.Value.Y * yMultiplier);
+                    var fixedX = (int) (playerData.LapPoint.Value.X * xMultiplier);
+                    
+                    double colorAtLapPoint = grayImage[fixedY, fixedX].Intensity;
                     if (colorAtLapPoint > 0)
                     {
                         // Motion detected at lap point, register lap.
