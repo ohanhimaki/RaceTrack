@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -9,6 +10,7 @@ using System.Windows.Media.Imaging;
 using AForge.Video.DirectShow;
 using Emgu.CV;
 using Emgu.CV.Structure;
+using RaceTrack.Data;
 
 namespace RaceTrack
 {
@@ -23,17 +25,19 @@ namespace RaceTrack
         private Mat _frame;
         private int imagecounter = 0;
 
-        public ObservableCollection<LapTime> LapTimes { get; set; }
         private DateTime? StartDate = null;
-        private Point? _lapPoint = null; // Assuming you have this declared somewhere
+        public PlayerDataContainer Player1Data { get; set; } = new PlayerDataContainer("Mario");
+        public PlayerDataContainer Player2Data { get; set; } = new PlayerDataContainer("Luigi");
+        private bool settingPointForPlayer1 = false;
+        private bool settingPointForPlayer2 = false;
 
         public MainWindow()
         {
             InitializeComponent();
 
             // Initialize the lap times collection
-            LapTimes = new ObservableCollection<LapTime>();
-            LapTimesList.ItemsSource = LapTimes;
+            LapTimesListPlayer1.ItemsSource = Player1Data.LapTimes;
+            LapTimesListPlayer2.ItemsSource = Player2Data.LapTimes;
             
             try
             {
@@ -50,6 +54,13 @@ namespace RaceTrack
 
         }
 
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
         private Mat _previousFrame;
 
         private void Capture_ImageGrabbed(object sender, EventArgs e)
@@ -63,22 +74,9 @@ namespace RaceTrack
                 Mat grayDiff = new Mat();
                 CvInvoke.CvtColor(diff, grayDiff, Emgu.CV.CvEnum.ColorConversion.Bgr2Gray);
                 CvInvoke.Threshold(grayDiff, grayDiff, 25, 255, Emgu.CV.CvEnum.ThresholdType.Binary);
-
                 var grayImage = grayDiff.ToImage<Gray, byte>();
-                if (_lapPoint != null)
-                {
-                    double colorAtLapPoint = grayImage[(int)_lapPoint.Value.Y, (int)_lapPoint.Value.X].Intensity;
-                    if (colorAtLapPoint > 0)
-                    {
-                        // Motion detected at lap point, register lap.
-                        // check that the last lap was at least 2 seconds ago
-                        if (LapTimes.Count == 0 || DateTime.Now - DateTime.Parse(LapTimes[LapTimes.Count - 1].Time) >
-                            TimeSpan.FromSeconds(1))
-                        {
-                            AddLapTime();
-                        }
-                    }
-                }
+                CheckLapPoint(Player1Data,grayImage);
+                CheckLapPoint(Player2Data,grayImage);
 
                 _previousFrame = _frame.Clone();
 
@@ -95,8 +93,37 @@ namespace RaceTrack
             }
         }
 
+        private void CheckLapPoint(PlayerDataContainer playerData, Image<Gray, byte> grayImage)
+        {
+                if (playerData.LapPoint != null)
+                {
+                    double colorAtLapPoint = grayImage[(int)playerData.LapPoint.Value.Y, (int)playerData.LapPoint.Value.X].Intensity;
+                    if (colorAtLapPoint > 0)
+                    {
+                        // Motion detected at lap point, register lap.
+                        // check that the last lap was at least 2 seconds ago
+                        if (playerData.LapTimes.Count == 0 || DateTime.Now - DateTime.Parse(playerData.LapTimes[playerData.LapTimes.Count - 1].Time) >
+                            TimeSpan.FromSeconds(1))
+                        {
+                            AddLapTime(playerData);
+                        }
+                    }
+                }
+        }
+
+
+        private void btnSetPointPlayer1_Click(object sender, RoutedEventArgs e)
+        {
+            settingPointForPlayer1 = true;
+        }
+
+        private void btnSetPointPlayer2_Click(object sender, RoutedEventArgs e)
+        {
+            settingPointForPlayer2 = true;
+        }
+
         // Mock method to simulate adding lap times (you'd have your actual logic here)
-        private void AddLapTime()
+        private void AddLapTime(PlayerDataContainer playerData)
         {
             Dispatcher.Invoke(() =>
             {
@@ -109,14 +136,14 @@ namespace RaceTrack
 
                 TimeSpan duration = currentLapTime - StartDate.Value;
 
-                if (LapTimes.Count == 0) // The first lap
+                if (playerData.LapTimes.Count == 0) // The first lap
                 {
                     duration = TimeSpan.Zero;
                 }
 
-                LapTimes.Add(new LapTime
+                playerData.LapTimes.Add(new LapTime
                 {
-                    LapNumber = LapTimes.Count, Time = currentLapTime.ToString("HH:mm:ss.fff"), Duration = duration
+                    LapNumber = playerData.LapTimes.Count, Time = currentLapTime.ToString("HH:mm:ss.fff"), Duration = duration
                 });
 
                 // Update the StartDate for the next lap:
@@ -125,12 +152,6 @@ namespace RaceTrack
         }
 
         // This will be your model for each lap time
-        public class LapTime
-        {
-            public int LapNumber { get; set; }
-            public string Time { get; set; }
-            public TimeSpan Duration { get; set; }
-        }
 
         // Ensure to stop the webcam when the window is closed
         protected override void OnClosed(EventArgs e)
@@ -152,15 +173,22 @@ namespace RaceTrack
 
         private void SetLapPoint(Point position)
         {
-            _lapPoint = position;
-
-            // Position the circle at the lap point. Note that we're offsetting by half the width/height of the circle
-            // to ensure the point is in the center of the circle.
-            Canvas.SetLeft(LapPointCircle, position.X - (LapPointCircle.Width / 2));
-            Canvas.SetTop(LapPointCircle, position.Y - (LapPointCircle.Height / 2));
-
-            // Make the circle visible
-            LapPointCircle.Visibility = Visibility.Visible;
+            if (settingPointForPlayer1)
+            {
+                Player1Data.LapPoint = position;
+                Canvas.SetLeft(LapPointCirclePlayer1, position.X - (LapPointCirclePlayer1.Width / 2));
+                Canvas.SetTop(LapPointCirclePlayer1, position.Y - (LapPointCirclePlayer1.Height / 2));
+                LapPointCirclePlayer1.Visibility = Visibility.Visible;
+            }
+            else if (settingPointForPlayer2)
+            {
+                Player2Data.LapPoint = position;
+                Canvas.SetLeft(LapPointCirclePlayer2, position.X - (LapPointCirclePlayer2.Width / 2));
+                Canvas.SetTop(LapPointCirclePlayer2, position.Y - (LapPointCirclePlayer2.Height / 2));
+                LapPointCirclePlayer2.Visibility = Visibility.Visible;
+            }
+            settingPointForPlayer1 = false;
+            settingPointForPlayer2 = false;
         }
         
 private BitmapSource ConvertBitmap(System.Drawing.Bitmap bitmap)
