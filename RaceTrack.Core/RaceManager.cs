@@ -50,6 +50,43 @@ public class RaceManager
         }
     }
 
+        public async void WarnTooEarly(PlayerDataContainer playerData)
+        {
+            
+            _eventAggregator.Publish(new BigWarningMessage() { Message = "Too early " + playerData.Name + "!" });
+            
+
+            await Task.Delay(3000);
+            StopRace();
+            _eventAggregator.Publish(new BigWarningMessage());
+        }
+        public void AddLapTime(PlayerDataContainer playerData)
+        {
+            DateTime currentLapTime = DateTime.Now;
+
+            if (playerData.LapStartTime == null)
+            {
+                playerData.LapStartTime = currentLapTime;
+            }
+
+            TimeSpan duration = currentLapTime - playerData.LapStartTime.Value;
+
+            if (playerData.LapTimes.Count == 0) // The first lap
+            {
+                // startdate vs currentlaptime, tells reaction speed
+                duration = currentLapTime - StartDate.Value;
+            }
+
+            playerData.LapTimes.Add(new LapTime
+            {
+                LapNumber = playerData.LapTimes.Count, Time = currentLapTime.ToString("HH:mm:ss.fff"),
+                Duration = duration, TotalRaceDuration = currentLapTime - StartDate.Value
+            });
+
+            playerData.LapStartTime = currentLapTime;
+
+            UpdateRaceStatus();
+        }
 
     public void StartRace()
     {

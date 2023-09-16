@@ -72,6 +72,13 @@ namespace RaceTrack
                     StartRaceButton.IsEnabled = message.IsEnabled;
                 });
             });
+            _eventAggregator.Subscribe<BigWarningMessage>(message => 
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    BigWarning.Text = "";
+                });
+            });
         }
         
         
@@ -129,7 +136,7 @@ namespace RaceTrack
                 {
                     if (RaceManager.RaceIsStarting)
                     {
-                        WarnTooEarly(playerData);
+                        RaceManager.WarnTooEarly(playerData);
                         return;
                     }
 
@@ -139,24 +146,12 @@ namespace RaceTrack
                         DateTime.Parse(playerData.LapTimes[playerData.LapTimes.Count - 1].Time) >
                         TimeSpan.FromSeconds(1))
                     {
-                        AddLapTime(playerData);
+                        RaceManager.AddLapTime(playerData);
                     }
                 }
             }
         }
 
-        private async void WarnTooEarly(PlayerDataContainer playerData)
-        {
-            Dispatcher.Invoke(() =>
-            {
-                BigWarning.Visibility = Visibility.Visible;
-                BigWarning.Text = "Too early " + playerData.Name + "!";
-            });
-
-            await Task.Delay(3000);
-            RaceManager.StopRace();
-            Dispatcher.Invoke(() => { BigWarning.Text = ""; });
-        }
 
 
         private void btnSetPointPlayer1_Click(object sender, RoutedEventArgs e)
@@ -170,36 +165,6 @@ namespace RaceTrack
         }
 
         // Mock method to simulate adding lap times (you'd have your actual logic here)
-        private void AddLapTime(PlayerDataContainer playerData)
-        {
-            Dispatcher.Invoke(() =>
-            {
-                DateTime currentLapTime = DateTime.Now;
-
-                if (playerData.LapStartTime == null)
-                {
-                    playerData.LapStartTime = currentLapTime;
-                }
-
-                TimeSpan duration = currentLapTime - playerData.LapStartTime.Value;
-
-                if (playerData.LapTimes.Count == 0) // The first lap
-                {
-                    // startdate vs currentlaptime, tells reaction speed
-                    duration = currentLapTime - RaceManager.StartDate.Value;
-                }
-
-                playerData.LapTimes.Add(new LapTime
-                {
-                    LapNumber = playerData.LapTimes.Count, Time = currentLapTime.ToString("HH:mm:ss.fff"),
-                    Duration = duration, TotalRaceDuration = currentLapTime - RaceManager.StartDate.Value
-                });
-
-                playerData.LapStartTime = currentLapTime;
-            });
-
-            RaceManager.UpdateRaceStatus();
-        }
 
         // This will be your model for each lap time
 
