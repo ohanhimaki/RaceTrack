@@ -79,10 +79,24 @@ namespace RaceTrack
                     BigWarning.Text = "";
                 });
             });
+            _eventAggregator.Subscribe<RaceStartLightsMessage>(message => 
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    Light1.Fill = new SolidColorBrush((Color)ColorConverter.ConvertFromString(message.Light1Fill.Name));
+                    Light2.Fill = new SolidColorBrush((Color)ColorConverter.ConvertFromString(message.Light2Fill.Name));
+                    Light3.Fill = new SolidColorBrush((Color)ColorConverter.ConvertFromString(message.Light3Fill.Name));
+                    Light4.Fill = new SolidColorBrush((Color)ColorConverter.ConvertFromString(message.Light4Fill.Name));
+                    Light5.Fill = new SolidColorBrush((Color)ColorConverter.ConvertFromString(message.Light5Fill.Name));
+                    Light1.Visibility = message.Light1Visible ? Visibility.Visible : Visibility.Hidden;
+                    Light2.Visibility = message.Light2Visible ? Visibility.Visible : Visibility.Hidden;
+                    Light3.Visibility = message.Light3Visible ? Visibility.Visible : Visibility.Hidden;
+                    Light4.Visibility = message.Light4Visible ? Visibility.Visible : Visibility.Hidden;
+                    Light5.Visibility = message.Light5Visible ? Visibility.Visible : Visibility.Hidden;
+                    StartRaceButton.IsEnabled = message.StartButtonEnabled;
+                });
+            });
         }
-        
-        
-
         private Mat _previousFrame;
 
         private void Capture_ImageGrabbed(object sender, EventArgs e)
@@ -210,45 +224,7 @@ namespace RaceTrack
 
         private async void StartRaceButton_Click(object sender, RoutedEventArgs e)
         {
-            StartRaceButton.IsEnabled = false; // Disable button to prevent re-clicks during start
-            RaceManager.RaceIsStarting = true;
-            Light1.Visibility = Visibility.Visible;
-            Light2.Visibility = Visibility.Visible;
-            Light3.Visibility = Visibility.Visible;
-            Light4.Visibility = Visibility.Visible;
-            Light5.Visibility = Visibility.Visible;
-
-            // Light up each red light every second
-            Light1.Fill = Brushes.Red;
-            await Task.Delay(1000);
-            Light2.Fill = Brushes.Red;
-            await Task.Delay(1000);
-            Light3.Fill = Brushes.Red;
-            await Task.Delay(1000);
-            Light4.Fill = Brushes.Red;
-            await Task.Delay(1000);
-            Light5.Fill = Brushes.Red;
-
-            // Wait for a random time between 0.2 to 3 seconds
-            Random random = new Random();
-            int randomDelay = random.Next(200, 3001); // Between 0.2 to 3 seconds
-            await Task.Delay(randomDelay);
-
-            // Extinguish the lights and start the race
-            Light1.Fill = Brushes.Gray;
-            Light2.Fill = Brushes.Gray;
-            Light3.Fill = Brushes.Gray;
-            Light4.Fill = Brushes.Gray;
-            Light5.Fill = Brushes.Gray;
-            RaceManager.RaceIsStarting = false;
             RaceManager.StartRace();
-            await Task.Delay(2000);
-            // hide lights
-            Light1.Visibility = Visibility.Hidden;
-            Light2.Visibility = Visibility.Hidden;
-            Light3.Visibility = Visibility.Hidden;
-            Light4.Visibility = Visibility.Hidden;
-            Light5.Visibility = Visibility.Hidden;
         }
 
     }
