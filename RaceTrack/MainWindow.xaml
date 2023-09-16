@@ -26,6 +26,9 @@
             <Ellipse Name="Light4" Width="100" Height="100" Fill="Gray" Margin="2"/>
             <Ellipse Name="Light5" Width="100" Height="100" Fill="Gray" Margin="2"/>
         </StackPanel>
+        <StackPanel VerticalAlignment="Top" HorizontalAlignment="Center" Margin="140" Orientation="Horizontal"> 
+            <TextBlock FontSize="60" Name="BigWarning" />
+        </StackPanel>
         <Canvas Name="OverlayCanvas" HorizontalAlignment="Left" VerticalAlignment="Top">
             <Ellipse Name="LapPointCirclePlayer1" Width="20" Height="20" Fill="Red" Visibility="Hidden"/>
             <Ellipse Name="LapPointCirclePlayer2" Width="20" Height="20" Fill="Green" Visibility="Hidden"/>

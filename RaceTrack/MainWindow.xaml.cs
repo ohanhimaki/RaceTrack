@@ -33,6 +33,7 @@ namespace RaceTrack
         public PlayerDataContainer Player2Data { get; set; } = new PlayerDataContainer("Luigi");
         private bool settingPointForPlayer1 = false;
         private bool settingPointForPlayer2 = false;
+        public bool RaceIsStarting { get; set; }
 
         public MainWindow()
         {
@@ -98,7 +99,7 @@ namespace RaceTrack
 
         private void CheckLapPoint(PlayerDataContainer playerData, Image<Gray, byte> grayImage)
         {
-            if (!RaceOngoing)
+            if (!RaceOngoing && !RaceIsStarting)
             {
                 return;
             }
@@ -115,6 +116,11 @@ namespace RaceTrack
                     double colorAtLapPoint = grayImage[fixedY, fixedX].Intensity;
                     if (colorAtLapPoint > 0)
                     {
+                        if (RaceIsStarting)
+                        {
+                            WarnTooEarly(playerData);
+                            return;
+                        }
                         // Motion detected at lap point, register lap.
                         // check that the last lap was at least 2 seconds ago
                         if (playerData.LapTimes.Count == 0 || DateTime.Now - DateTime.Parse(playerData.LapTimes[playerData.LapTimes.Count - 1].Time) >
@@ -124,6 +130,23 @@ namespace RaceTrack
                         }
                     }
                 }
+        }
+
+        private async void WarnTooEarly(PlayerDataContainer playerData)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                BigWarning.Visibility = Visibility.Visible;
+                BigWarning.Text = "Too early " + playerData.Name + "!";
+            });
+
+            await Task.Delay(3000);
+            StopRace();
+            Dispatcher.Invoke(() =>
+            {
+                BigWarning.Text = "";
+            });
+            
         }
 
 
@@ -153,7 +176,8 @@ namespace RaceTrack
 
                 if (playerData.LapTimes.Count == 0) // The first lap
                 {
-                    duration = TimeSpan.Zero;
+                    // startdate vs currentlaptime, tells reaction speed
+                    duration = currentLapTime - StartDate.Value;
                 }
 
                 playerData.LapTimes.Add(new LapTime
@@ -208,6 +232,7 @@ namespace RaceTrack
     private async void StartRaceButton_Click(object sender, RoutedEventArgs e)
     {
         StartRaceButton.IsEnabled = false; // Disable button to prevent re-clicks during start
+        RaceIsStarting = true;
         Light1.Visibility = Visibility.Visible;
         Light2.Visibility = Visibility.Visible;
         Light3.Visibility = Visibility.Visible;
@@ -236,6 +261,7 @@ namespace RaceTrack
         Light3.Fill = Brushes.Gray;
         Light4.Fill = Brushes.Gray;
         Light5.Fill = Brushes.Gray;
+        RaceIsStarting = false;
         StartRace();
         await Task.Delay(2000); 
         // hide lights
@@ -246,12 +272,24 @@ namespace RaceTrack
         Light5.Visibility = Visibility.Hidden;
     }
 
-private void StartRace()
+
+    private void StartRace()
 {
     // Initialize race variables and start the race
     StartDate = DateTime.Now;
     RaceOngoing = true;
     // Add any other logic to start the race
+}
+    private void StopRace()
+{
+    StartDate = null;
+    RaceOngoing = false;
+    Dispatcher.Invoke(() =>
+    {
+        StartRaceButton.IsEnabled = true; 
+    });
+    
+    
 }
         
 private BitmapSource ConvertBitmap(System.Drawing.Bitmap bitmap)
