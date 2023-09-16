@@ -12,6 +12,15 @@
             <Button Name="btnSetPointPlayer1" Content="Aseta pelaaja 1" Click="btnSetPointPlayer1_Click" Margin="10" />
             <Button Name="btnSetPointPlayer2" Content="Aseta pelaaja 2" Click="btnSetPointPlayer2_Click" Margin="10" />
         </StackPanel>
+        <StackPanel VerticalAlignment="Top" HorizontalAlignment="Right" Margin="10">
+            <Border Background="Black" Opacity="0.7" Padding="10">
+                <StackPanel>
+                    <TextBlock Name="FirstPlaceText" Text="" Foreground="White" FontSize="20"/>
+                    <TextBlock Name="SecondPlaceText" Text="" Foreground="White" FontSize="20" Margin="0,10,0,0"/>
+                    <TextBlock Name="TimeDifferenceText" Text="+0.00s" Foreground="White" FontSize="18"/>
+                </StackPanel>
+            </Border>
+        </StackPanel>
         
         
         <StackPanel VerticalAlignment="Top" HorizontalAlignment="Center" Margin="10" Orientation="Horizontal">

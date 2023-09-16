@@ -9,6 +9,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
 using AForge.Video.DirectShow;
 using Emgu.CV;
 using Emgu.CV.Structure;
@@ -182,11 +183,13 @@ namespace RaceTrack
 
                 playerData.LapTimes.Add(new LapTime
                 {
-                    LapNumber = playerData.LapTimes.Count, Time = currentLapTime.ToString("HH:mm:ss.fff"), Duration = duration
+                    LapNumber = playerData.LapTimes.Count, Time = currentLapTime.ToString("HH:mm:ss.fff"), Duration = duration, TotalRaceDuration = currentLapTime - StartDate.Value
                 });
 
                 playerData.LapStartTime = currentLapTime;
             });
+
+            UpdateRaceStatus();
         }
 
         // This will be your model for each lap time
@@ -270,6 +273,29 @@ namespace RaceTrack
         Light3.Visibility = Visibility.Hidden;
         Light4.Visibility = Visibility.Hidden;
         Light5.Visibility = Visibility.Hidden;
+    }
+    
+    private void UpdateRaceStatus()
+    {
+        
+        bool isPlayer1Leading = PlayerDataHelper.IsPlayer1Leading(Player1Data, Player2Data, out var timeDifferenceText);
+
+        Dispatcher.Invoke(() =>
+        {
+
+            if (isPlayer1Leading)
+            {
+                FirstPlaceText.Text = Player1Data.Name;
+                SecondPlaceText.Text = Player2Data.Name;
+            }
+            else
+            {
+                FirstPlaceText.Text = Player2Data.Name;
+                SecondPlaceText.Text = Player1Data.Name;
+            }
+
+            TimeDifferenceText.Text = timeDifferenceText; // Format to two decimal places
+        });
     }
 
 
