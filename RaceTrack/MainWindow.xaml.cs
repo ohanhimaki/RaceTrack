@@ -6,12 +6,15 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Threading;
 using AForge.Video.DirectShow;
 using Emgu.CV;
 using Emgu.CV.Structure;
 using RaceTrack.Core;
 using RaceTrack.Core.Models;
 using RaceTrack.Core.Helpers;
+using RaceTrack.Core.Messaging;
+using RaceTrack.Core.Messaging.Messages;
 
 namespace RaceTrack
 {
@@ -20,6 +23,7 @@ namespace RaceTrack
     /// </summary>
     public partial class MainWindow : Window
     {
+        private readonly EventAggregator _eventAggregator;
         private FilterInfoCollection videoDevices;
         private VideoCaptureDevice videoSource;
         private readonly VideoCapture _capture;
@@ -27,9 +31,12 @@ namespace RaceTrack
 
         private bool settingPointForPlayer1 = false;
         private bool settingPointForPlayer2 = false;
-        public RaceManager RaceManager { get; set; } = new RaceManager(); 
-        public MainWindow()
+        
+        public RaceManager RaceManager { get; set; }   
+        public MainWindow(EventAggregator eventAggregator)
         {
+            _eventAggregator = eventAggregator;
+            RaceManager = new RaceManager(_eventAggregator);
             InitializeComponent();
 
             // Initialize the lap times collection
@@ -48,7 +55,26 @@ namespace RaceTrack
             {
                 MessageBox.Show(ex.Message);
             }
+            
+            _eventAggregator.Subscribe<RaceStatusMessage>(message => 
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    FirstPlaceText.Text = message.FirstPlaceText;
+                    SecondPlaceText.Text = message.SecondPlaceText;
+                    TimeDifferenceText.Text = message.TimeDifferenceText;
+                });
+            });
+            _eventAggregator.Subscribe<StartButtonStateMessage>(message => 
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    StartRaceButton.IsEnabled = message.IsEnabled;
+                });
+            });
         }
+        
+        
 
         private Mat _previousFrame;
 
@@ -128,7 +154,7 @@ namespace RaceTrack
             });
 
             await Task.Delay(3000);
-            StopRace();
+            RaceManager.StopRace();
             Dispatcher.Invoke(() => { BigWarning.Text = ""; });
         }
 
@@ -172,7 +198,7 @@ namespace RaceTrack
                 playerData.LapStartTime = currentLapTime;
             });
 
-            UpdateRaceStatus();
+            RaceManager.UpdateRaceStatus();
         }
 
         // This will be your model for each lap time
@@ -250,7 +276,7 @@ namespace RaceTrack
             Light4.Fill = Brushes.Gray;
             Light5.Fill = Brushes.Gray;
             RaceManager.RaceIsStarting = false;
-            StartRace();
+            RaceManager.StartRace();
             await Task.Delay(2000);
             // hide lights
             Light1.Visibility = Visibility.Hidden;
@@ -260,42 +286,5 @@ namespace RaceTrack
             Light5.Visibility = Visibility.Hidden;
         }
 
-        private void UpdateRaceStatus()
-        {
-            bool isPlayer1Leading =
-                PlayerDataHelper.IsPlayer1Leading(RaceManager.Player1Data, RaceManager.Player2Data, out var timeDifferenceText);
-
-            Dispatcher.Invoke(() =>
-            {
-                if (isPlayer1Leading)
-                {
-                    FirstPlaceText.Text = RaceManager.Player1Data.Name;
-                    SecondPlaceText.Text = RaceManager.Player2Data.Name;
-                }
-                else
-                {
-                    FirstPlaceText.Text = RaceManager.Player2Data.Name;
-                    SecondPlaceText.Text = RaceManager.Player1Data.Name;
-                }
-
-                TimeDifferenceText.Text = timeDifferenceText; // Format to two decimal places
-            });
-        }
-
-
-        private void StartRace()
-        {
-            // Initialize race variables and start the race
-            RaceManager.StartDate = DateTime.Now;
-            RaceManager.RaceOngoing = true;
-            // Add any other logic to start the race
-        }
-
-        private void StopRace()
-        {
-            RaceManager.StartDate = null;
-            RaceManager.RaceOngoing = false;
-            Dispatcher.Invoke(() => { StartRaceButton.IsEnabled = true; });
-        }
     }
 }
