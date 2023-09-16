@@ -13,6 +13,19 @@
             <Button Name="btnSetPointPlayer2" Content="Aseta pelaaja 2" Click="btnSetPointPlayer2_Click" Margin="10" />
         </StackPanel>
         
+        
+        <StackPanel VerticalAlignment="Top" HorizontalAlignment="Center" Margin="10" Orientation="Horizontal">
+            <Button Name="StartRaceButton" Content="Start Race" Click="StartRaceButton_Click"/>
+            
+        </StackPanel>
+        
+        <StackPanel VerticalAlignment="Top" HorizontalAlignment="Center" Margin="100" Orientation="Horizontal"> 
+            <Ellipse Name="Light1" Width="100" Height="100" Fill="Gray" Margin="2"/>
+            <Ellipse Name="Light2" Width="100" Height="100" Fill="Gray" Margin="2"/>
+            <Ellipse Name="Light3" Width="100" Height="100" Fill="Gray" Margin="2"/>
+            <Ellipse Name="Light4" Width="100" Height="100" Fill="Gray" Margin="2"/>
+            <Ellipse Name="Light5" Width="100" Height="100" Fill="Gray" Margin="2"/>
+        </StackPanel>
         <Canvas Name="OverlayCanvas" HorizontalAlignment="Left" VerticalAlignment="Top">
             <Ellipse Name="LapPointCirclePlayer1" Width="20" Height="20" Fill="Red" Visibility="Hidden"/>
             <Ellipse Name="LapPointCirclePlayer2" Width="20" Height="20" Fill="Green" Visibility="Hidden"/>

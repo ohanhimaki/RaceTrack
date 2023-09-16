@@ -3,9 +3,11 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using AForge.Video.DirectShow;
 using Emgu.CV;
@@ -26,6 +28,7 @@ namespace RaceTrack
         private int imagecounter = 0;
 
         private DateTime? StartDate = null;
+        private bool RaceOngoing = false;
         public PlayerDataContainer Player1Data { get; set; } = new PlayerDataContainer("Mario");
         public PlayerDataContainer Player2Data { get; set; } = new PlayerDataContainer("Luigi");
         private bool settingPointForPlayer1 = false;
@@ -95,6 +98,10 @@ namespace RaceTrack
 
         private void CheckLapPoint(PlayerDataContainer playerData, Image<Gray, byte> grayImage)
         {
+            if (!RaceOngoing)
+            {
+                return;
+            }
                 if (playerData.LapPoint != null)
                 {
                     double colorAtLapPoint = grayImage[(int)playerData.LapPoint.Value.Y, (int)playerData.LapPoint.Value.X].Intensity;
@@ -129,12 +136,12 @@ namespace RaceTrack
             {
                 DateTime currentLapTime = DateTime.Now;
 
-                if (StartDate == null)
+                if (playerData.LapStartTime == null)
                 {
-                    StartDate = currentLapTime;
+                    playerData.LapStartTime = currentLapTime;
                 }
 
-                TimeSpan duration = currentLapTime - StartDate.Value;
+                TimeSpan duration = currentLapTime - playerData.LapStartTime.Value;
 
                 if (playerData.LapTimes.Count == 0) // The first lap
                 {
@@ -146,8 +153,7 @@ namespace RaceTrack
                     LapNumber = playerData.LapTimes.Count, Time = currentLapTime.ToString("HH:mm:ss.fff"), Duration = duration
                 });
 
-                // Update the StartDate for the next lap:
-                StartDate = currentLapTime;
+                playerData.LapStartTime = currentLapTime;
             });
         }
 
@@ -190,6 +196,55 @@ namespace RaceTrack
             settingPointForPlayer1 = false;
             settingPointForPlayer2 = false;
         }
+        
+    private async void StartRaceButton_Click(object sender, RoutedEventArgs e)
+    {
+        StartRaceButton.IsEnabled = false; // Disable button to prevent re-clicks during start
+        Light1.Visibility = Visibility.Visible;
+        Light2.Visibility = Visibility.Visible;
+        Light3.Visibility = Visibility.Visible;
+        Light4.Visibility = Visibility.Visible;
+        Light5.Visibility = Visibility.Visible;
+
+        // Light up each red light every second
+        Light1.Fill = Brushes.Red;
+        await Task.Delay(1000);
+        Light2.Fill = Brushes.Red;
+        await Task.Delay(1000);
+        Light3.Fill = Brushes.Red;
+        await Task.Delay(1000);
+        Light4.Fill = Brushes.Red;
+        await Task.Delay(1000);
+        Light5.Fill = Brushes.Red;
+
+        // Wait for a random time between 0.2 to 3 seconds
+        Random random = new Random();
+        int randomDelay = random.Next(200, 3001); // Between 0.2 to 3 seconds
+        await Task.Delay(randomDelay);
+
+        // Extinguish the lights and start the race
+        Light1.Fill = Brushes.Gray;
+        Light2.Fill = Brushes.Gray;
+        Light3.Fill = Brushes.Gray;
+        Light4.Fill = Brushes.Gray;
+        Light5.Fill = Brushes.Gray;
+        StartRace();
+        await Task.Delay(2000); 
+        // hide lights
+        Light1.Visibility = Visibility.Hidden;
+        Light2.Visibility = Visibility.Hidden;
+        Light3.Visibility = Visibility.Hidden;
+        Light4.Visibility = Visibility.Hidden;
+        Light5.Visibility = Visibility.Hidden;
+    }
+
+private void StartRace()
+{
+    // Initialize race variables and start the race
+    StartDate = DateTime.Now;
+    RaceOngoing = true;
+    // Add any other logic to start the race
+}
         
 private BitmapSource ConvertBitmap(System.Drawing.Bitmap bitmap)
 {
