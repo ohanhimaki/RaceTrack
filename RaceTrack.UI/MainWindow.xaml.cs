@@ -1,18 +1,13 @@
 ﻿using System;
-using System.ComponentModel;
-using System.Configuration;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Threading;
 using AForge.Video.DirectShow;
 using Emgu.CV;
 using Emgu.CV.Structure;
 using RaceTrack.Core;
 using RaceTrack.Core.Models;
-using RaceTrack.Core.Helpers;
 using RaceTrack.Core.Messaging;
 using RaceTrack.Core.Messaging.Messages;
 

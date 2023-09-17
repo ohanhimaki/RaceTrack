@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RaceTrack", "RaceTrack\RaceTrack.csproj", "{52DF8177-DAF1-4D05-ACAD-5C1DDEBC288D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RaceTrack.UI", "RaceTrack.UI\RaceTrack.UI.csproj", "{52DF8177-DAF1-4D05-ACAD-5C1DDEBC288D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RaceTrack.Core", "RaceTrack.Core\RaceTrack.Core.csproj", "{F59966C6-420C-4D08-AAB0-D50C3B476D7E}"
 EndProject
