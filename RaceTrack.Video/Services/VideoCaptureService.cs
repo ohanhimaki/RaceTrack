@@ -1,11 +1,12 @@
-﻿using Emgu.CV;
+﻿using AForge.Video.DirectShow;
+using Emgu.CV;
 using RaceTrack.Core.Services;
 
 namespace RaceTrack.Video.Services
 {
     public class VideoCaptureService : IVideoCaptureService
     {
-        private readonly VideoCapture _capture;
+        private VideoCapture _capture;
         private Mat _currentFrame;
 
         public event EventHandler<FrameCapturedEventArgs> FrameCaptured;
@@ -16,7 +17,7 @@ namespace RaceTrack.Video.Services
             _currentFrame = new Mat();
             _capture.ImageGrabbed += Capture_ImageGrabbed;
         }
-        
+
         public void StartCapture()
         {
             _capture.Start();
@@ -26,6 +27,30 @@ namespace RaceTrack.Video.Services
         {
             _capture.Stop();
         }
+
+        public List<string> GetCameraList()
+        {
+            var cameraList = new List<string>();
+
+            // Get available cameras
+            FilterInfoCollection videoDevices = new FilterInfoCollection(FilterCategory.VideoInputDevice);
+
+            foreach (FilterInfo device in videoDevices)
+            {
+                cameraList.Add(device.Name);
+            }
+
+            return cameraList;
+        }
+        public void SetCamera(int cameraIndex)
+        {
+            _capture.Stop();
+            _capture = new VideoCapture(cameraIndex);
+            _capture.ImageGrabbed += Capture_ImageGrabbed;
+            _capture.Start();
+        }
+        
+        
 
         private void Capture_ImageGrabbed(object sender, EventArgs e)
         {
@@ -39,5 +64,4 @@ namespace RaceTrack.Video.Services
             _capture?.Dispose();
         }
     }
-
 }
