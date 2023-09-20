@@ -4,7 +4,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using AForge.Video.DirectShow;
 using Emgu.CV;
 using Emgu.CV.Structure;
 using RaceTrack.Core;
@@ -23,8 +22,8 @@ namespace RaceTrack
     {
         private readonly EventAggregator _eventAggregator;
 
-        private bool settingPointForPlayer1 = false;
-        private bool settingPointForPlayer2 = false;
+        private bool _settingPointForPlayer1;
+        private bool _settingPointForPlayer2;
         
         // observable collection for the lap times
         private readonly ObservableCollection<LapTime> _lapTimesPlayer1 = new ObservableCollection<LapTime>();
@@ -73,7 +72,7 @@ namespace RaceTrack
             {
                 Dispatcher.Invoke(() =>
                 {
-                    BigWarning.Text = "";
+                    BigWarning.Text = message.Message;
                 });
             });
             _eventAggregator.Subscribe<RaceStartLightsMessage>(message => 
@@ -117,55 +116,14 @@ namespace RaceTrack
             });
         }
 
-
-
-        private void CheckLapPoint(PlayerDataContainer playerData, Image<Gray, byte> grayImage)
-        {
-            if (!RaceManager.RaceOngoing && !RaceManager.RaceIsStarting)
-            {
-                return;
-            }
-
-            if (playerData.LapPoint != null)
-            {
-                // caltulate the multiplier for the x and y axis
-                var yMultiplier = grayImage.Height / WebcamFeed.ActualHeight;
-                var xMultiplier = grayImage.Width / WebcamFeed.ActualWidth;
-
-                var fixedY = (int)(playerData.LapPoint.Value.Y * yMultiplier);
-                var fixedX = (int)(playerData.LapPoint.Value.X * xMultiplier);
-
-                double colorAtLapPoint = grayImage[fixedY, fixedX].Intensity;
-                if (colorAtLapPoint > 0)
-                {
-                    if (RaceManager.RaceIsStarting)
-                    {
-                        RaceManager.WarnTooEarly(playerData);
-                        return;
-                    }
-
-                    // Motion detected at lap point, register lap.
-                    // check that the last lap was at least 2 seconds ago
-                    if (playerData.LapTimesCount == 0 || DateTime.Now -
-                        DateTime.Parse(playerData.GetLapTime(playerData.LapTimesCount - 1).Time) >
-                        TimeSpan.FromSeconds(1))
-                    {
-                        RaceManager.AddLapTime(playerData);
-                    }
-                }
-            }
-        }
-
-
-
         private void btnSetPointPlayer1_Click(object sender, RoutedEventArgs e)
         {
-            settingPointForPlayer1 = true;
+            _settingPointForPlayer1 = true;
         }
 
         private void btnSetPointPlayer2_Click(object sender, RoutedEventArgs e)
         {
-            settingPointForPlayer2 = true;
+            _settingPointForPlayer2 = true;
         }
 
         // Mock method to simulate adding lap times (you'd have your actual logic here)
@@ -188,7 +146,7 @@ namespace RaceTrack
 
         private void SetLapPoint(Point position)
         {
-            if (settingPointForPlayer1)
+            if (_settingPointForPlayer1)
             {
                 // calculate point of video feed
                 var multiplierx = WebcamFeed.ActualWidth / WebcamFeed.Source.Width;
@@ -202,7 +160,7 @@ namespace RaceTrack
                 Canvas.SetTop(LapPointCirclePlayer1, position.Y - (LapPointCirclePlayer1.Height / 2));
                 LapPointCirclePlayer1.Visibility = Visibility.Visible;
             }
-            else if (settingPointForPlayer2)
+            else if (_settingPointForPlayer2)
             {
                 // calculate point of video feed
                 var multiplierx = WebcamFeed.ActualWidth / WebcamFeed.Source.Width;
@@ -217,8 +175,8 @@ namespace RaceTrack
                 LapPointCirclePlayer2.Visibility = Visibility.Visible;
             }
 
-            settingPointForPlayer1 = false;
-            settingPointForPlayer2 = false;
+            _settingPointForPlayer1 = false;
+            _settingPointForPlayer2 = false;
         }
 
         private async void StartRaceButton_Click(object sender, RoutedEventArgs e)
