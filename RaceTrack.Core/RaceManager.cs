@@ -3,24 +3,49 @@ using RaceTrack.Core.Helpers;
 using RaceTrack.Core.Messaging;
 using RaceTrack.Core.Messaging.Messages;
 using RaceTrack.Core.Models;
+using RaceTrack.Core.Services;
 
 namespace RaceTrack.Core;
 
 public class RaceManager
 {
     private readonly EventAggregator _eventAggregator;
+    private readonly IVideoCaptureService _videoCaptureService;
     public DateTime? StartDate = null;
     public bool RaceOngoing = false;
+    private readonly RaceVideoProcessor _raceVideoProcessor;
     public PlayerDataContainer Player1Data { get; set; }
     public PlayerDataContainer Player2Data { get; set; }
     public bool RaceIsStarting { get; set; }
 
-    public RaceManager(EventAggregator eventAggregator)
+    public RaceManager(EventAggregator eventAggregator, IVideoCaptureService videoCaptureService)
     {
         _eventAggregator = eventAggregator;
+        _videoCaptureService = videoCaptureService;
+        _raceVideoProcessor = new RaceVideoProcessor(_videoCaptureService, new LapDetectionService(this));
 
         Player1Data = new PlayerDataContainer("Mario");
+        Player1Data.LapTimeAdded += Player1DataOnLapTimeAdded;
         Player2Data = new PlayerDataContainer("Luigi");
+        Player2Data.LapTimeAdded += Player2DataOnLapTimeAdded;
+    }
+
+    private void Player2DataOnLapTimeAdded(object? sender, LapTime e)
+    {
+        _eventAggregator.Publish(new NewLapTimeMessage()
+        {
+            LapTime = e,
+            PlayerNbr = 2
+        });
+    }
+
+    private void Player1DataOnLapTimeAdded(object? sender, LapTime e)
+    {
+        _eventAggregator.Publish(new NewLapTimeMessage()
+        {
+            LapTime = e,
+            PlayerNbr = 1
+        });
     }
 
 
@@ -72,15 +97,15 @@ public class RaceManager
 
         TimeSpan duration = currentLapTime - playerData.LapStartTime.Value;
 
-        if (playerData.LapTimes.Count == 0) // The first lap
+        if (playerData.LapTimesCount == 0) // The first lap
         {
             // startdate vs currentlaptime, tells reaction speed
             duration = currentLapTime - StartDate.Value;
         }
 
-        playerData.LapTimes.Add(new LapTime
+        playerData.AddLapTime(new LapTime
         {
-            LapNumber = playerData.LapTimes.Count, Time = currentLapTime.ToString("HH:mm:ss.fff"),
+            LapNumber = playerData.LapTimesCount, Time = currentLapTime.ToString("HH:mm:ss.fff"),
             Duration = duration, TotalRaceDuration = currentLapTime - StartDate.Value
         });
 

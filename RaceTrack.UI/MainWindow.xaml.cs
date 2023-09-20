@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -10,6 +11,8 @@ using RaceTrack.Core;
 using RaceTrack.Core.Models;
 using RaceTrack.Core.Messaging;
 using RaceTrack.Core.Messaging.Messages;
+using RaceTrack.Core.Services;
+using RaceTrack.Video.Services;
 
 namespace RaceTrack
 {
@@ -19,32 +22,31 @@ namespace RaceTrack
     public partial class MainWindow : Window
     {
         private readonly EventAggregator _eventAggregator;
-        private FilterInfoCollection videoDevices;
-        private VideoCaptureDevice videoSource;
-        private readonly VideoCapture _capture;
-        private Mat _frame;
 
         private bool settingPointForPlayer1 = false;
         private bool settingPointForPlayer2 = false;
         
+        // observable collection for the lap times
+        private readonly ObservableCollection<LapTime> _lapTimesPlayer1 = new ObservableCollection<LapTime>();
+        private readonly ObservableCollection<LapTime> _lapTimesPlayer2 = new ObservableCollection<LapTime>();
+        
         public RaceManager RaceManager { get; set; }   
+        private VideoCaptureService _videoCaptureService { get; set; }   
         public MainWindow(EventAggregator eventAggregator)
         {
             _eventAggregator = eventAggregator;
-            RaceManager = new RaceManager(_eventAggregator);
+            _videoCaptureService = new VideoCaptureService();
+            RaceManager = new RaceManager(_eventAggregator, _videoCaptureService);
+            _videoCaptureService.FrameCaptured += VideoCaptureServiceOnFrameCaptured;
             InitializeComponent();
 
             // Initialize the lap times collection
-            LapTimesListPlayer1.ItemsSource = RaceManager.Player1Data.LapTimes;
-            LapTimesListPlayer2.ItemsSource = RaceManager.Player2Data.LapTimes;
+            LapTimesListPlayer1.ItemsSource = _lapTimesPlayer1;
+            LapTimesListPlayer2.ItemsSource = _lapTimesPlayer2;
 
             try
             {
-                _capture = new VideoCapture(0); // 0 for the default camera
-                _capture.ImageGrabbed += Capture_ImageGrabbed;
-
-                _frame = new Mat();
-                _capture.Start();
+                _videoCaptureService.StartCapture();
             }
             catch (Exception ex)
             {
@@ -91,38 +93,31 @@ namespace RaceTrack
                     StartRaceButton.IsEnabled = message.StartButtonEnabled;
                 });
             });
-        }
-        private Mat _previousFrame;
-
-        private void Capture_ImageGrabbed(object sender, EventArgs e)
-        {
-            _capture.Retrieve(_frame);
-
-            if (!_frame.IsEmpty && _previousFrame != null)
+            _eventAggregator.Subscribe<NewLapTimeMessage>(message =>
             {
-                Mat diff = new Mat();
-                CvInvoke.AbsDiff(_frame, _previousFrame, diff);
-                Mat grayDiff = new Mat();
-                CvInvoke.CvtColor(diff, grayDiff, Emgu.CV.CvEnum.ColorConversion.Bgr2Gray);
-                CvInvoke.Threshold(grayDiff, grayDiff, 25, 255, Emgu.CV.CvEnum.ThresholdType.Binary);
-                var grayImage = grayDiff.ToImage<Gray, byte>();
-                CheckLapPoint(RaceManager.Player1Data, grayImage);
-                CheckLapPoint(RaceManager.Player2Data, grayImage);
-
-                _previousFrame = _frame.Clone();
-
                 Dispatcher.Invoke(() =>
+                {
+                    if (message.PlayerNbr == 1)
                     {
-                        var bitmapSource = BitmapSourceConvert.ToBitmapSource(_frame);
-                        WebcamFeed.Source = bitmapSource;
-                    },
-                    System.Windows.Threading.DispatcherPriority.Render);
-            }
-            else if (_previousFrame == null)
-            {
-                _previousFrame = _frame.Clone();
-            }
+                        _lapTimesPlayer1.Add(message.LapTime);
+                    }
+                    else
+                    {
+                        _lapTimesPlayer2.Add(message.LapTime);
+                    }
+                });
+            });
         }
+
+        private void VideoCaptureServiceOnFrameCaptured(object? sender, FrameCapturedEventArgs e)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                WebcamFeed.Source = BitmapSourceConvert.ToBitmapSource(e.Frame);
+            });
+        }
+
+
 
         private void CheckLapPoint(PlayerDataContainer playerData, Image<Gray, byte> grayImage)
         {
@@ -151,8 +146,8 @@ namespace RaceTrack
 
                     // Motion detected at lap point, register lap.
                     // check that the last lap was at least 2 seconds ago
-                    if (playerData.LapTimes.Count == 0 || DateTime.Now -
-                        DateTime.Parse(playerData.LapTimes[playerData.LapTimes.Count - 1].Time) >
+                    if (playerData.LapTimesCount == 0 || DateTime.Now -
+                        DateTime.Parse(playerData.GetLapTime(playerData.LapTimesCount - 1).Time) >
                         TimeSpan.FromSeconds(1))
                     {
                         RaceManager.AddLapTime(playerData);
@@ -181,12 +176,7 @@ namespace RaceTrack
         protected override void OnClosed(EventArgs e)
         {
             base.OnClosed(e);
-            _capture?.Dispose();
-            _frame?.Dispose();
-            if (videoSource != null && videoSource.IsRunning)
-            {
-                videoSource.Stop();
-            }
+            _videoCaptureService.StopCapture();
         }
 
         private void WebcamFeed_MouseUp(object sender, MouseButtonEventArgs e)
@@ -200,14 +190,28 @@ namespace RaceTrack
         {
             if (settingPointForPlayer1)
             {
-                RaceManager.Player1Data.LapPoint = position.ToNullableDrawingPoint(); 
+                // calculate point of video feed
+                var multiplierx = WebcamFeed.ActualWidth / WebcamFeed.Source.Width;
+                var multipliery = WebcamFeed.ActualHeight / WebcamFeed.Source.Height;
+                
+                var fixedY = (int)(position.Y * multipliery);
+                var fixedX = (int)(position.X * multiplierx);
+
+                RaceManager.Player1Data.LapPoint = new System.Drawing.Point(fixedX, fixedY);
                 Canvas.SetLeft(LapPointCirclePlayer1, position.X - (LapPointCirclePlayer1.Width / 2));
                 Canvas.SetTop(LapPointCirclePlayer1, position.Y - (LapPointCirclePlayer1.Height / 2));
                 LapPointCirclePlayer1.Visibility = Visibility.Visible;
             }
             else if (settingPointForPlayer2)
             {
-                RaceManager.Player2Data.LapPoint = position.ToNullableDrawingPoint();
+                // calculate point of video feed
+                var multiplierx = WebcamFeed.ActualWidth / WebcamFeed.Source.Width;
+                var multipliery = WebcamFeed.ActualHeight / WebcamFeed.Source.Height;
+                
+                var fixedY = (int)(position.Y * multipliery);
+                var fixedX = (int)(position.X * multiplierx);
+
+                RaceManager.Player2Data.LapPoint = new System.Drawing.Point(fixedX, fixedY);
                 Canvas.SetLeft(LapPointCirclePlayer2, position.X - (LapPointCirclePlayer2.Width / 2));
                 Canvas.SetTop(LapPointCirclePlayer2, position.Y - (LapPointCirclePlayer2.Height / 2));
                 LapPointCirclePlayer2.Visibility = Visibility.Visible;

@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="AForge" Version="2.2.5" />
+      <PackageReference Include="AForge.Video.DirectShow" Version="2.2.5" />
+      <PackageReference Include="Emgu.CV" Version="4.8.0.5324" />
+      <PackageReference Include="Emgu.CV.runtime.windows" Version="4.8.0.5324" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\RaceTrack.Core\RaceTrack.Core.csproj" />
+    </ItemGroup>
+
+</Project>

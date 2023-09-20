@@ -1,22 +1,46 @@
 ﻿
 using System.Collections.ObjectModel;
 using System.Drawing;
+using RaceTrack.Core.Messaging;
+using RaceTrack.Core.Messaging.Messages;
+
 namespace RaceTrack.Core.Models;
 
 public class PlayerDataContainer
 {
-    private int _shortListCount = 3;
-
     public Point? LapPoint = null; 
     public DateTime? LapStartTime = null; 
-    public ObservableCollection<LapTime> LapTimes { get; set; }
+
+    public List<LapTime> LapTimes { get; set; } = new List<LapTime>();
 
     public string Name { get; set; }
+    
+    // get laptimes count
+    public int LapTimesCount => LapTimes.Count;
+    
 
     public PlayerDataContainer(string name)
     {
         Name = name;
-        LapTimes = new ObservableCollection<LapTime>();
+    }
+    
+    //action for parent to subscribe to
+    public event EventHandler<LapTime> LapTimeAdded;
+
+    public void AddLapTime(LapTime time)
+    {
+        LapTimes.Add(time);
+        LapTimeAdded?.Invoke(this, time);
+    }
+
+    public void RemoveLapTime(LapTime time)
+    {
+        LapTimes.Remove(time);
+    }
+    
+    public LapTime GetLapTime(int index)
+    {
+        return LapTimes[index];
     }
 
 

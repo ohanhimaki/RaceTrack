@@ -10,13 +10,13 @@ public static class PlayerDataHelper
         out string differenceMsg)
     {
         differenceMsg = string.Empty;
-        if (player1Data.LapTimes.Count == 0 || player2Data.LapTimes.Count == 0)
+        if (player1Data.LapTimesCount == 0 || player2Data.LapTimesCount == 0)
         {
             return true;
         }
-        var test = player1Data.LapTimes.Count;
-        var test2 = player2Data.LapTimes.Count;
-        var difference = player1Data.LapTimes.Count - player2Data.LapTimes.Count;
+        var test = player1Data.LapTimesCount;
+        var test2 = player2Data.LapTimesCount;
+        var difference = player1Data.LapTimesCount - player2Data.LapTimesCount;
         if (difference >= 2)
         {
             differenceMsg = (difference - 1) + " laps";
@@ -62,7 +62,7 @@ public static class PlayerDataHelper
             }
             
             
-            var player1TotalDuration = player1Data.LapTimes[player2Data.LapTimes.Count].TotalRaceDuration;
+            var player1TotalDuration = player1Data.GetLapTime(player2Data.LapTimesCount).TotalRaceDuration;
             var player2TotalDuration = player2Data.LapTimes.Last().TotalRaceDuration;
             differenceMsg = (player1TotalDuration - player2TotalDuration).ToString(@"ss\.fff");
             return true;
