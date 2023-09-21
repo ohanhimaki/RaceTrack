@@ -4,5 +4,5 @@ public class RaceStatusMessage
 {
     public string FirstPlaceText { get; set; }
     public string SecondPlaceText { get; set; }
-    public string TimeDifferenceText { get; set; }
+    public string LapCountText { get; set; }
 }

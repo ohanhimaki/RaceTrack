@@ -54,7 +54,7 @@ namespace RaceTrack
                 {
                     FirstPlaceText.Text = message.FirstPlaceText;
                     SecondPlaceText.Text = message.SecondPlaceText;
-                    TimeDifferenceText.Text = message.TimeDifferenceText;
+                    LapText.Text = message.LapCountText;
                 });
             });
             eventAggregator.Subscribe<StartButtonStateMessage>(message => 

@@ -14,9 +14,9 @@
         <StackPanel VerticalAlignment="Top" HorizontalAlignment="Right" Margin="10">
             <Border Background="Black" Opacity="0.7" Padding="10">
                 <StackPanel>
+                    <TextBlock Name="LapText" Text="" Foreground="White" FontSize="20"/>
                     <TextBlock Name="FirstPlaceText" Text="" Foreground="White" FontSize="20"/>
                     <TextBlock Name="SecondPlaceText" Text="" Foreground="White" FontSize="20" Margin="0,10,0,0"/>
-                    <TextBlock Name="TimeDifferenceText" Text="+0.00s" Foreground="White" FontSize="18"/>
                 </StackPanel>
             </Border>
         </StackPanel>

@@ -17,6 +17,7 @@ public class RaceManager
     public PlayerDataContainer Player1Data { get; set; }
     public PlayerDataContainer Player2Data { get; set; }
     public bool RaceIsStarting { get; set; }
+    public int RaceLaps { get; set; } = 5;
 
     public RaceManager(EventAggregator eventAggregator, IVideoCaptureService videoCaptureService)
     {
@@ -83,8 +84,8 @@ public class RaceManager
             var message = new RaceStatusMessage
             {
                 FirstPlaceText = Player1Data.Name,
-                SecondPlaceText = Player2Data.Name,
-                TimeDifferenceText = timeDifferenceText
+                SecondPlaceText = Player2Data.Name + " " + timeDifferenceText,
+                LapCountText = Player1Data.LapTimesCount + "/" + RaceLaps
             };
             _eventAggregator.Publish(message);
         }
@@ -93,8 +94,8 @@ public class RaceManager
             var message = new RaceStatusMessage
             {
                 FirstPlaceText = Player2Data.Name,
-                SecondPlaceText = Player1Data.Name,
-                TimeDifferenceText = timeDifferenceText
+                SecondPlaceText = Player1Data.Name + " " + timeDifferenceText,
+                LapCountText = Player2Data.LapTimesCount + "/" + RaceLaps
             };
             _eventAggregator.Publish(message);
         }

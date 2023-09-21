@@ -39,32 +39,29 @@ public static class PlayerDataHelper
             return !CalculateOneRoundDifference(player2Data, player1Data, out differenceMsg);
         }
 
-        if (difference == 0)
-        {
-            var player2TotalDuration = player2Data.LapTimes.Last().TotalRaceDuration;
-            var player1TotalDuration = player1Data.LapTimes.Last().TotalRaceDuration;
-            differenceMsg = (player2TotalDuration - player1TotalDuration).ToString(@"ss\.fff");
-            return player2TotalDuration < player1TotalDuration;
-        }
+        var player2TotalDuration = player2Data.LapTimes.Last().TotalRaceDuration;
+        var player1TotalDuration = player1Data.LapTimes.Last().TotalRaceDuration;
+        var duration = player2TotalDuration > player1TotalDuration ? player2TotalDuration-player1TotalDuration : player1TotalDuration-player2TotalDuration;
+        differenceMsg = (duration).ToString(@"ss\.fff");
+        return player1TotalDuration < player2TotalDuration;
 
-        return true;
     }
 
     private static bool CalculateOneRoundDifference(PlayerDataContainer player1Data, PlayerDataContainer player2Data, out string differenceMsg)
     {
-            var player1TotalDurationAll = player1Data.LapTimes.Last().TotalRaceDuration;
-            var player2TotalDurationAll = player2Data.LapTimes.Last().TotalRaceDuration;
-            var player1LeadsByLap = player1TotalDurationAll < player2TotalDurationAll;
-            if (player1LeadsByLap)
-            {
-                differenceMsg = "1 lap";
-                return true;
-            }
-            
-            
-            var player1TotalDuration = player1Data.GetLapTime(player2Data.LapTimesCount).TotalRaceDuration;
-            var player2TotalDuration = player2Data.LapTimes.Last().TotalRaceDuration;
-            differenceMsg = (player1TotalDuration - player2TotalDuration).ToString(@"ss\.fff");
+        var player1TotalDurationAll = player1Data.LapTimes.Last().TotalRaceDuration;
+        var player2TotalDurationAll = player2Data.LapTimes.Last().TotalRaceDuration;
+        var player1LeadsByLap = player1TotalDurationAll < player2TotalDurationAll;
+        if (player1LeadsByLap)
+        {
+            differenceMsg = "1 lap";
             return true;
+        }
+        
+        
+        var player1TotalDuration = player1Data.GetLapTime(player2Data.LapTimesCount).TotalRaceDuration;
+        var player2TotalDuration = player2Data.LapTimes.Last().TotalRaceDuration;
+        differenceMsg = (player1TotalDuration - player2TotalDuration).ToString(@"ss\.fff");
+        return true;
     }
 }
