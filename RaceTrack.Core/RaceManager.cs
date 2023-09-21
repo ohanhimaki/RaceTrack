@@ -31,6 +31,7 @@ public class RaceManager
         Player2Data = new PlayerDataContainer("Luigi");
         Player2Data.LapTimeAdded += Player2DataOnLapTimeAdded;
         Player2Data.LapPointEdited += Player2LapPointEdited;
+        UpdateRaceStatus();
     }
 
     private void Player2LapPointEdited(object? sender, Point e)
@@ -42,6 +43,25 @@ public class RaceManager
             ShowLapPoint = true
             
         });
+    }
+
+    public string SetPlayer1(string name)
+    {
+        if (RaceIsStarting || RaceOngoing)
+        {
+            return "Ei voi vaihtaa nimeä";
+        }
+        Player1Data.Name = name;
+        return "";
+    }
+    public string SetPlayer2(string name)
+    {
+        if (RaceIsStarting || RaceOngoing)
+        {
+            return "Ei voi vaihtaa nimeä";
+        }
+        Player2Data.Name = name;
+        return "";
     }
 
     private void Player1LapPointEdited(object? sender, Point e)
@@ -76,6 +96,17 @@ public class RaceManager
 
     public void UpdateRaceStatus()
     {
+        if(!RaceIsStarting && !RaceOngoing)
+        {
+            var message = new RaceStatusMessage
+            {
+                FirstPlaceText = Player1Data.Name,
+                SecondPlaceText = Player2Data.Name ,
+                LapCountText = ""
+            };
+            _eventAggregator.Publish(message);
+            return;
+        }
         bool isPlayer1Leading =
             PlayerDataHelper.IsPlayer1Leading(Player1Data, Player2Data, out var timeDifferenceText);
 
@@ -167,8 +198,11 @@ public class RaceManager
         UpdateRaceStatus();
     }
 
-    public async void StartRace()
+    public async void StartRace(int lapcount, string player1Name, string player2Name)
     {
+        SetPlayer1(player1Name);
+        SetPlayer2(player2Name);
+        RaceLaps = lapcount;
         var message = new RaceStartLightsMessage
         {
             Light1Fill = Color.Gray,

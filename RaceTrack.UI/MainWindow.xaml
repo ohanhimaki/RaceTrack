@@ -8,7 +8,9 @@
         
         <Image Name="WebcamFeed" MouseUp="WebcamFeed_MouseUp" Stretch="Fill" HorizontalAlignment="Left" VerticalAlignment="Top"/>
         <StackPanel VerticalAlignment="Top" HorizontalAlignment="Left" Margin="10" Background="Black" Opacity="0.7">
+            <TextBox Name="Player1NameInput" Width="200" Text="Mario"/>
             <Button Name="btnSetPointPlayer1" Content="Aseta pelaaja 1" Click="btnSetPointPlayer1_Click" Margin="10" />
+            <TextBox Name="Player2NameInput" Width="200" Text="Luigi"/>
             <Button Name="btnSetPointPlayer2" Content="Aseta pelaaja 2" Click="btnSetPointPlayer2_Click" Margin="10" />
         </StackPanel>
         <StackPanel VerticalAlignment="Top" HorizontalAlignment="Right" Margin="10">
@@ -23,6 +25,16 @@
         
         
         <StackPanel VerticalAlignment="Top" HorizontalAlignment="Center" Margin="10" Orientation="Horizontal">
+                <Label Content="Race Laps:" VerticalAlignment="Center" Margin="10"/>
+                
+                <!-- NEW: ComboBox for selecting number of laps -->
+                <ComboBox Name="RaceLapSetting" Width="80" SelectedIndex="0">
+                    <ComboBoxItem Content="5"/>
+                    <ComboBoxItem Content="10"/>
+                    <ComboBoxItem Content="15"/>
+                    <ComboBoxItem Content="20"/>
+                    <!-- Add more predefined lap counts if necessary -->
+                </ComboBox>
             <Button Name="StartRaceButton" Content="Start Race" Click="StartRaceButton_Click"/>
             
         </StackPanel>

@@ -186,7 +186,8 @@ namespace RaceTrack
 
         private async void StartRaceButton_Click(object sender, RoutedEventArgs e)
         {
-            RaceManager.StartRace();
+            RaceManager.StartRace( int.Parse((RaceLapSetting.SelectedItem as ComboBoxItem).Content.ToString()),
+                Player1NameInput.Text, Player2NameInput.Text);
         }
 
     }
