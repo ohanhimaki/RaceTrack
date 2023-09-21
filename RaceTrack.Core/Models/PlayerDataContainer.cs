@@ -10,6 +10,7 @@ public class PlayerDataContainer
 {
     public Point? LapPoint = null; 
     public DateTime? LapStartTime = null; 
+    public bool Finished { get; set; }
 
     public List<LapTime> LapTimes { get; set; } = new List<LapTime>();
 
@@ -17,7 +18,8 @@ public class PlayerDataContainer
     
     // get laptimes count
     public int LapTimesCount => LapTimes.Count;
-    
+    public TimeSpan TotalRaceDuration => LapTimes.Last().TotalRaceDuration;
+
 
     public PlayerDataContainer(string name)
     {
@@ -50,4 +52,10 @@ public class PlayerDataContainer
         LapPoint = point;
         LapPointEdited?.Invoke(this, point);
     }
+
+    public void FinishRace()
+    {
+        Finished = true;
+    }
+
 }

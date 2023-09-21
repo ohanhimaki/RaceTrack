@@ -79,11 +79,16 @@ public class RaceManager
         bool isPlayer1Leading =
             PlayerDataHelper.IsPlayer1Leading(Player1Data, Player2Data, out var timeDifferenceText);
 
+        var additionalMessage = "";
         if (isPlayer1Leading)
         {
+            if (Player1Data.Finished)
+            {
+                additionalMessage = " " + Player1Data.TotalRaceDuration.ToString("mm\\:ss\\.fff");
+            }
             var message = new RaceStatusMessage
             {
-                FirstPlaceText = Player1Data.Name,
+                FirstPlaceText = Player1Data.Name + additionalMessage,
                 SecondPlaceText = Player2Data.Name + " " + timeDifferenceText,
                 LapCountText = Player1Data.LapTimesCount + "/" + RaceLaps
             };
@@ -91,11 +96,15 @@ public class RaceManager
         }
         else
         {
+            if (Player2Data.Finished)
+            {
+                additionalMessage = " " + Player1Data.TotalRaceDuration.ToString("mm\\:ss\\.fff");
+            }
             var message = new RaceStatusMessage
             {
-                FirstPlaceText = Player2Data.Name,
-                SecondPlaceText = Player1Data.Name + " " + timeDifferenceText,
-                LapCountText = Player2Data.LapTimesCount + "/" + RaceLaps
+                FirstPlaceText = Player2Data.Name + additionalMessage,
+                SecondPlaceText = Player1Data.Name + " +" + timeDifferenceText,
+                LapCountText = Player2Data.LapTimesCount-1 + "/" + RaceLaps
             };
             _eventAggregator.Publish(message);
         }
@@ -113,6 +122,10 @@ public class RaceManager
 
     public void AddLapTime(PlayerDataContainer playerData)
     {
+        if (playerData.Finished)
+        {
+            return;
+        }
         DateTime currentLapTime = DateTime.Now;
 
         if (playerData.LapStartTime == null)
@@ -133,6 +146,21 @@ public class RaceManager
             LapNumber = playerData.LapTimesCount, Time = currentLapTime.ToString("HH:mm:ss.fff"),
             Duration = duration, TotalRaceDuration = currentLapTime - StartDate.Value
         });
+        if (playerData.LapTimesCount-1 == RaceLaps)
+        {
+            playerData.FinishRace();
+            if (Player1Data.Finished && Player2Data.Finished)
+            {
+                StopRace();
+            }
+            else
+            {
+                _eventAggregator.Publish(new BigWarningMessage
+                {
+                    Message = Player1Data.Name + " IS THE WINNER!!!"
+                });
+            }
+        }
 
         playerData.LapStartTime = currentLapTime;
 
