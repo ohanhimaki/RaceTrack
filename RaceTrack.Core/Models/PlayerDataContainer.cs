@@ -58,4 +58,10 @@ public class PlayerDataContainer
         Finished = true;
     }
 
+    public void Reset()
+    {
+        LapTimes.Clear();
+        LapStartTime = null;
+        Finished = false;
+    }
 }

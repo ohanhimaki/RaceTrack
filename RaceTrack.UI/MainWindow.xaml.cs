@@ -18,16 +18,16 @@ namespace RaceTrack
     /// </summary>
     public partial class MainWindow : Window
     {
-
         private bool _settingPointForPlayer1;
         private bool _settingPointForPlayer2;
-        
+
         // observable collection for the lap times
         private readonly ObservableCollection<LapTime> _lapTimesPlayer1 = new ObservableCollection<LapTime>();
         private readonly ObservableCollection<LapTime> _lapTimesPlayer2 = new ObservableCollection<LapTime>();
-        
-        public RaceManager RaceManager { get; set; }   
-        private VideoCaptureService _videoCaptureService { get; set; }   
+
+        public RaceManager RaceManager { get; set; }
+        private VideoCaptureService _videoCaptureService { get; set; }
+
         public MainWindow(EventAggregator eventAggregator)
         {
             _videoCaptureService = new VideoCaptureService();
@@ -47,8 +47,8 @@ namespace RaceTrack
             {
                 MessageBox.Show(ex.Message);
             }
-            
-            eventAggregator.Subscribe<RaceStatusMessage>(message => 
+
+            eventAggregator.Subscribe<RaceStatusMessage>(message =>
             {
                 Dispatcher.Invoke(() =>
                 {
@@ -57,21 +57,26 @@ namespace RaceTrack
                     LapText.Text = message.LapCountText;
                 });
             });
-            eventAggregator.Subscribe<StartButtonStateMessage>(message => 
+            eventAggregator.Subscribe<StartButtonStateMessage>(message =>
+            {
+                Dispatcher.Invoke(() => { StartRaceButton.Content = message.IsEnabled ? "Start" : "Reset"; });
+            });
+            eventAggregator.Subscribe<BigWarningMessage>(message =>
+            {
+                Dispatcher.Invoke(() => { BigWarning.Text = message.Message; });
+            });
+            eventAggregator.Subscribe<ResetRaceManagerMessage>(_ =>
             {
                 Dispatcher.Invoke(() =>
                 {
-                    StartRaceButton.IsEnabled = message.IsEnabled;
+                    StartRaceButton.IsEnabled = true;
+                    BigWarning.Text = "";
+                    _lapTimesPlayer1.Clear();
+                    _lapTimesPlayer2.Clear();
+                    StartRaceButton.Content = "Start";
                 });
             });
-            eventAggregator.Subscribe<BigWarningMessage>(message => 
-            {
-                Dispatcher.Invoke(() =>
-                {
-                    BigWarning.Text = message.Message;
-                });
-            });
-            eventAggregator.Subscribe<RaceStartLightsMessage>(message => 
+            eventAggregator.Subscribe<RaceStartLightsMessage>(message =>
             {
                 Dispatcher.Invoke(() =>
                 {
@@ -85,7 +90,7 @@ namespace RaceTrack
                     Light3.Visibility = message.Light3Visible ? Visibility.Visible : Visibility.Hidden;
                     Light4.Visibility = message.Light4Visible ? Visibility.Visible : Visibility.Hidden;
                     Light5.Visibility = message.Light5Visible ? Visibility.Visible : Visibility.Hidden;
-                    StartRaceButton.IsEnabled = message.StartButtonEnabled;
+                    StartRaceButton.Content = message.StartButtonEnabled ? "Start" : "Reset";
                 });
             });
             eventAggregator.Subscribe<NewLapTimeMessage>(message =>
@@ -114,13 +119,15 @@ namespace RaceTrack
                     {
                         Canvas.SetLeft(LapPointCirclePlayer1, fixedX - (LapPointCirclePlayer1.Width / 2));
                         Canvas.SetTop(LapPointCirclePlayer1, fixedY - (LapPointCirclePlayer1.Height / 2));
-                        LapPointCirclePlayer1.Visibility = message.ShowLapPoint ? Visibility.Visible : Visibility.Hidden;
+                        LapPointCirclePlayer1.Visibility =
+                            message.ShowLapPoint ? Visibility.Visible : Visibility.Hidden;
                     }
                     else
                     {
                         Canvas.SetLeft(LapPointCirclePlayer2, fixedX - (LapPointCirclePlayer2.Width / 2));
                         Canvas.SetTop(LapPointCirclePlayer2, fixedY - (LapPointCirclePlayer2.Height / 2));
-                        LapPointCirclePlayer2.Visibility = message.ShowLapPoint ? Visibility.Visible : Visibility.Hidden;
+                        LapPointCirclePlayer2.Visibility =
+                            message.ShowLapPoint ? Visibility.Visible : Visibility.Hidden;
                     }
                 });
             });
@@ -128,10 +135,7 @@ namespace RaceTrack
 
         private void VideoCaptureServiceOnFrameCaptured(object? sender, FrameCapturedEventArgs e)
         {
-            Dispatcher.Invoke(() =>
-            {
-                WebcamFeed.Source = BitmapSourceConvert.ToBitmapSource(e.Frame);
-            });
+            Dispatcher.Invoke(() => { WebcamFeed.Source = BitmapSourceConvert.ToBitmapSource(e.Frame); });
         }
 
         private void btnSetPointPlayer1_Click(object sender, RoutedEventArgs e)
@@ -167,12 +171,11 @@ namespace RaceTrack
             // calculate point of video feed
             var multiplierx = WebcamFeed.ActualWidth / WebcamFeed.Source.Width;
             var multipliery = WebcamFeed.ActualHeight / WebcamFeed.Source.Height;
-            
+
             var fixedX = (int)(position.X / multiplierx);
             var fixedY = (int)(position.Y / multipliery);
             if (_settingPointForPlayer1)
             {
-
                 RaceManager.Player1Data.SetLapPoint(new System.Drawing.Point(fixedX, fixedY));
             }
             else if (_settingPointForPlayer2)
@@ -186,9 +189,15 @@ namespace RaceTrack
 
         private async void StartRaceButton_Click(object sender, RoutedEventArgs e)
         {
-            RaceManager.StartRace( int.Parse((RaceLapSetting.SelectedItem as ComboBoxItem).Content.ToString()),
-                Player1NameInput.Text, Player2NameInput.Text);
+            if (RaceManager.RaceOngoing)
+            {
+                RaceManager.ResetRaceManager();
+            }
+            else
+            {
+                RaceManager.StartRace(int.Parse((RaceLapSetting.SelectedItem as ComboBoxItem).Content.ToString()),
+                    Player1NameInput.Text, Player2NameInput.Text);
+            }
         }
-
     }
 }

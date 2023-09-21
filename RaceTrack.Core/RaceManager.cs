@@ -268,4 +268,14 @@ public class RaceManager
         RaceOngoing = false;
         _eventAggregator.Publish(new StartButtonStateMessage { IsEnabled = true });
     }
+
+    public void ResetRaceManager()
+    {
+        Player1Data.Reset();
+        Player2Data.Reset();
+        StartDate = null;
+        RaceOngoing = false;
+        RaceIsStarting = false;
+        _eventAggregator.Publish(new ResetRaceManagerMessage());
+    }
 }
