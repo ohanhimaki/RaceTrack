@@ -26,8 +26,32 @@ public class RaceManager
 
         Player1Data = new PlayerDataContainer("Mario");
         Player1Data.LapTimeAdded += Player1DataOnLapTimeAdded;
+        Player1Data.LapPointEdited += Player1LapPointEdited;
         Player2Data = new PlayerDataContainer("Luigi");
         Player2Data.LapTimeAdded += Player2DataOnLapTimeAdded;
+        Player2Data.LapPointEdited += Player2LapPointEdited;
+    }
+
+    private void Player2LapPointEdited(object? sender, Point e)
+    {
+        _eventAggregator.Publish(new LapPointEditedMessage()
+        {
+            PlayerNbr = 2,
+            Position = e,
+            ShowLapPoint = true
+            
+        });
+    }
+
+    private void Player1LapPointEdited(object? sender, Point e)
+    {
+        _eventAggregator.Publish(new LapPointEditedMessage()
+        {
+            PlayerNbr = 1,
+            Position = e,
+            ShowLapPoint = true
+            
+        });
     }
 
     private void Player2DataOnLapTimeAdded(object? sender, LapTime e)

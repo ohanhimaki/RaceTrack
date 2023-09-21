@@ -26,6 +26,7 @@ public class PlayerDataContainer
     
     //action for parent to subscribe to
     public event EventHandler<LapTime> LapTimeAdded;
+    public event EventHandler<Point> LapPointEdited;
 
     public void AddLapTime(LapTime time)
     {
@@ -44,4 +45,9 @@ public class PlayerDataContainer
     }
 
 
+    public void SetLapPoint(Point point)
+    {
+        LapPoint = point;
+        LapPointEdited?.Invoke(this, point);
+    }
 }

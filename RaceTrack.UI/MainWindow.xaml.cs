@@ -102,6 +102,28 @@ namespace RaceTrack
                     }
                 });
             });
+            eventAggregator.Subscribe<LapPointEditedMessage>(message =>
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    var multiplierx = WebcamFeed.ActualWidth / WebcamFeed.Source.Width;
+                    var multipliery = WebcamFeed.ActualHeight / WebcamFeed.Source.Height;
+                    var fixedX = message.Position.X * multiplierx;
+                    var fixedY = message.Position.Y * multipliery;
+                    if (message.PlayerNbr == 1)
+                    {
+                        Canvas.SetLeft(LapPointCirclePlayer1, fixedX - (LapPointCirclePlayer1.Width / 2));
+                        Canvas.SetTop(LapPointCirclePlayer1, fixedY - (LapPointCirclePlayer1.Height / 2));
+                        LapPointCirclePlayer1.Visibility = message.ShowLapPoint ? Visibility.Visible : Visibility.Hidden;
+                    }
+                    else
+                    {
+                        Canvas.SetLeft(LapPointCirclePlayer2, fixedX - (LapPointCirclePlayer2.Width / 2));
+                        Canvas.SetTop(LapPointCirclePlayer2, fixedY - (LapPointCirclePlayer2.Height / 2));
+                        LapPointCirclePlayer2.Visibility = message.ShowLapPoint ? Visibility.Visible : Visibility.Hidden;
+                    }
+                });
+            });
         }
 
         private void VideoCaptureServiceOnFrameCaptured(object? sender, FrameCapturedEventArgs e)
@@ -142,33 +164,20 @@ namespace RaceTrack
 
         private void SetLapPoint(Point position)
         {
+            // calculate point of video feed
+            var multiplierx = WebcamFeed.ActualWidth / WebcamFeed.Source.Width;
+            var multipliery = WebcamFeed.ActualHeight / WebcamFeed.Source.Height;
+            
+            var fixedX = (int)(position.X / multiplierx);
+            var fixedY = (int)(position.Y / multipliery);
             if (_settingPointForPlayer1)
             {
-                // calculate point of video feed
-                var multiplierx = WebcamFeed.ActualWidth / WebcamFeed.Source.Width;
-                var multipliery = WebcamFeed.ActualHeight / WebcamFeed.Source.Height;
-                
-                var fixedY = (int)(position.Y * multipliery);
-                var fixedX = (int)(position.X * multiplierx);
 
-                RaceManager.Player1Data.LapPoint = new System.Drawing.Point(fixedX, fixedY);
-                Canvas.SetLeft(LapPointCirclePlayer1, position.X - (LapPointCirclePlayer1.Width / 2));
-                Canvas.SetTop(LapPointCirclePlayer1, position.Y - (LapPointCirclePlayer1.Height / 2));
-                LapPointCirclePlayer1.Visibility = Visibility.Visible;
+                RaceManager.Player1Data.SetLapPoint(new System.Drawing.Point(fixedX, fixedY));
             }
             else if (_settingPointForPlayer2)
             {
-                // calculate point of video feed
-                var multiplierx = WebcamFeed.ActualWidth / WebcamFeed.Source.Width;
-                var multipliery = WebcamFeed.ActualHeight / WebcamFeed.Source.Height;
-                
-                var fixedY = (int)(position.Y * multipliery);
-                var fixedX = (int)(position.X * multiplierx);
-
-                RaceManager.Player2Data.LapPoint = new System.Drawing.Point(fixedX, fixedY);
-                Canvas.SetLeft(LapPointCirclePlayer2, position.X - (LapPointCirclePlayer2.Width / 2));
-                Canvas.SetTop(LapPointCirclePlayer2, position.Y - (LapPointCirclePlayer2.Height / 2));
-                LapPointCirclePlayer2.Visibility = Visibility.Visible;
+                RaceManager.Player2Data.SetLapPoint(new System.Drawing.Point(fixedX, fixedY));
             }
 
             _settingPointForPlayer1 = false;
