@@ -6,15 +6,12 @@ namespace RaceTrack.Core;
 
 public interface ILapDetectionService
 {
-    event EventHandler<LapDetectedEventArgs> LapDetected;
     void ProcessFrame(Mat frame);
 }
 
 public class LapDetectionService : ILapDetectionService
 {
-    public event EventHandler<LapDetectedEventArgs> LapDetected;
-    private Mat _previousFrame;
-    private List<PlayerDataContainer> _playerDataContainers;
+    private Mat? _previousFrame;
     private RaceManager _raceManager;
 
     public LapDetectionService(RaceManager raceManager)
@@ -59,8 +56,8 @@ public class LapDetectionService : ILapDetectionService
         {
             // caltulate the multiplier for the x and y axis
 
-            var fixedY = (int)(playerData.LapPoint.Value.Y );
-            var fixedX = (int)(playerData.LapPoint.Value.X );
+            var fixedY = playerData.LapPoint.Value.Y;
+            var fixedX = playerData.LapPoint.Value.X;
 
             double colorAtLapPoint = grayImage[fixedY, fixedX].Intensity;
             if (colorAtLapPoint > 0)
@@ -82,9 +79,4 @@ public class LapDetectionService : ILapDetectionService
             }
         }
     }
-}
-
-public class LapDetectedEventArgs
-{
-    PlayerDataContainer PlayerData { get; set; }
 }

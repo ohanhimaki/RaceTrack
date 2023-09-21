@@ -4,8 +4,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using Emgu.CV;
-using Emgu.CV.Structure;
 using RaceTrack.Core;
 using RaceTrack.Core.Models;
 using RaceTrack.Core.Messaging;
@@ -20,7 +18,6 @@ namespace RaceTrack
     /// </summary>
     public partial class MainWindow : Window
     {
-        private readonly EventAggregator _eventAggregator;
 
         private bool _settingPointForPlayer1;
         private bool _settingPointForPlayer2;
@@ -33,9 +30,8 @@ namespace RaceTrack
         private VideoCaptureService _videoCaptureService { get; set; }   
         public MainWindow(EventAggregator eventAggregator)
         {
-            _eventAggregator = eventAggregator;
             _videoCaptureService = new VideoCaptureService();
-            RaceManager = new RaceManager(_eventAggregator, _videoCaptureService);
+            RaceManager = new RaceManager(eventAggregator, _videoCaptureService);
             _videoCaptureService.FrameCaptured += VideoCaptureServiceOnFrameCaptured;
             InitializeComponent();
 
@@ -52,7 +48,7 @@ namespace RaceTrack
                 MessageBox.Show(ex.Message);
             }
             
-            _eventAggregator.Subscribe<RaceStatusMessage>(message => 
+            eventAggregator.Subscribe<RaceStatusMessage>(message => 
             {
                 Dispatcher.Invoke(() =>
                 {
@@ -61,21 +57,21 @@ namespace RaceTrack
                     TimeDifferenceText.Text = message.TimeDifferenceText;
                 });
             });
-            _eventAggregator.Subscribe<StartButtonStateMessage>(message => 
+            eventAggregator.Subscribe<StartButtonStateMessage>(message => 
             {
                 Dispatcher.Invoke(() =>
                 {
                     StartRaceButton.IsEnabled = message.IsEnabled;
                 });
             });
-            _eventAggregator.Subscribe<BigWarningMessage>(message => 
+            eventAggregator.Subscribe<BigWarningMessage>(message => 
             {
                 Dispatcher.Invoke(() =>
                 {
                     BigWarning.Text = message.Message;
                 });
             });
-            _eventAggregator.Subscribe<RaceStartLightsMessage>(message => 
+            eventAggregator.Subscribe<RaceStartLightsMessage>(message => 
             {
                 Dispatcher.Invoke(() =>
                 {
@@ -92,7 +88,7 @@ namespace RaceTrack
                     StartRaceButton.IsEnabled = message.StartButtonEnabled;
                 });
             });
-            _eventAggregator.Subscribe<NewLapTimeMessage>(message =>
+            eventAggregator.Subscribe<NewLapTimeMessage>(message =>
             {
                 Dispatcher.Invoke(() =>
                 {

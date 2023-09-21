@@ -12,17 +12,11 @@ public class RaceVideoProcessor
         _lapDetectionService = lapDetectionService;
 
         _videoCaptureService.FrameCaptured += OnFrameCaptured;
-        _lapDetectionService.LapDetected += OnLapDetected;
     }
 
     private void OnFrameCaptured(object sender, FrameCapturedEventArgs e)
     {
         _lapDetectionService.ProcessFrame(e.Frame);
-    }
-
-    private void OnLapDetected(object sender, LapDetectedEventArgs e)
-    {
-        // Handle lap detection event
     }
 
     public void Start()
