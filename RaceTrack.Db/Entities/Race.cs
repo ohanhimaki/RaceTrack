@@ -1,6 +1,9 @@
-﻿namespace RaceTrack.Db.Entities;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace RaceTrack.Db.Entities;
 public class Race
 {
+    [Key]
     public int Id { get; set; }
     public DateTime StartTime { get; set; }
     public DateTime? EndTime { get; set; }  // Nullable if you want to set it only after the race ends

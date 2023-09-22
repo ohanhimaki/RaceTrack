@@ -16,15 +16,16 @@ public class RaceTrackDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        base.OnModelCreating(modelBuilder);
-        
         modelBuilder.Entity<Player>()
             .HasMany(p => p.Laps)
             .WithOne(l => l.Player)
             .HasForeignKey(l => l.PlayerId);
+        modelBuilder.Entity<Player>().HasKey(x => x.Id);
     
+        modelBuilder.Entity<RacePlayer>().HasKey(x => x.Id);
         modelBuilder.Entity<RacePlayer>()
             .HasKey(rp => new { rp.RaceId, rp.PlayerId }); // Composite primary key
+        
     
         modelBuilder.Entity<RacePlayer>()
             .HasOne(rp => rp.Race)
@@ -35,5 +36,11 @@ public class RaceTrackDbContext : DbContext
             .HasOne(rp => rp.Player)
             .WithMany(p => p.RacePlayers)
             .HasForeignKey(rp => rp.PlayerId);
+        
+        modelBuilder.Entity<Race>().HasKey(x => x.Id);
+        
+        modelBuilder.Entity<Lap>().HasKey(x => x.Id);
+        
+        base.OnModelCreating(modelBuilder);
     }
 }

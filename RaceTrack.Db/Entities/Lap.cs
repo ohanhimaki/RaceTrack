@@ -1,7 +1,10 @@
-﻿namespace RaceTrack.Db.Entities;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace RaceTrack.Db.Entities;
 
 public class Lap
 {
+    [Key]
     public int Id { get; set; }
     public int LapNumber { get; set; }        // Represents the sequence of the lap in the race.
     public TimeSpan Duration { get; set; }    // Represents the duration of this particular lap.
