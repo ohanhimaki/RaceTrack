@@ -4,3 +4,5 @@ obj/
 riderModule.iml
 /_ReSharper.Caches/
 RaceTrack.Db/RaceTrack.db
+RaceTrack.Db/RaceTrack.db-wal
+RaceTrack.Db/RaceTrack.db-shm

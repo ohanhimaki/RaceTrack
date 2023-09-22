@@ -23,6 +23,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\RaceTrack.Core\RaceTrack.Core.csproj" />
+      <ProjectReference Include="..\RaceTrack.Db\RaceTrack.Db.csproj" />
       <ProjectReference Include="..\RaceTrack.Video\RaceTrack.Video.csproj" />
     </ItemGroup>
 

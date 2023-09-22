@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Drawing;
 using RaceTrack.Core.Messaging;
 using RaceTrack.Core.Messaging.Messages;
+using RaceTrack.Db.Entities;
 
 namespace RaceTrack.Core.Models;
 
@@ -19,6 +20,7 @@ public class PlayerDataContainer
     // get laptimes count
     public int LapTimesCount => LapTimes.Count;
     public TimeSpan TotalRaceDuration => LapTimes.Last().TotalRaceDuration;
+    public Player? Player { get; set; }
 
 
     public PlayerDataContainer(string name)

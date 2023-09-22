@@ -13,7 +13,6 @@ public class Race
     
     // Navigation properties
     public ICollection<Lap> Laps { get; set; }        // All laps recorded during the race
-    public ICollection<RacePlayer> RacePlayers { get; set; }
 }
 public enum RaceStatus
 {

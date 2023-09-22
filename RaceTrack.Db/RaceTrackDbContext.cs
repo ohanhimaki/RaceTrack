@@ -11,7 +11,7 @@ public class RaceTrackDbContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.UseSqlite("Filename=RaceTrack.db"); // Name of your SQLite database file
+        optionsBuilder.UseSqlite("Filename=C:\\coding\\RaceTrack\\RaceTrack\\RaceTrack.Db\\RaceTrack.db"); // Name of your SQLite database file
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -22,21 +22,6 @@ public class RaceTrackDbContext : DbContext
             .HasForeignKey(l => l.PlayerId);
         modelBuilder.Entity<Player>().HasKey(x => x.Id);
     
-        modelBuilder.Entity<RacePlayer>().HasKey(x => x.Id);
-        modelBuilder.Entity<RacePlayer>()
-            .HasKey(rp => new { rp.RaceId, rp.PlayerId }); // Composite primary key
-        
-    
-        modelBuilder.Entity<RacePlayer>()
-            .HasOne(rp => rp.Race)
-            .WithMany(r => r.RacePlayers)
-            .HasForeignKey(rp => rp.RaceId);
-    
-        modelBuilder.Entity<RacePlayer>()
-            .HasOne(rp => rp.Player)
-            .WithMany(p => p.RacePlayers)
-            .HasForeignKey(rp => rp.PlayerId);
-        
         modelBuilder.Entity<Race>().HasKey(x => x.Id);
         
         modelBuilder.Entity<Lap>().HasKey(x => x.Id);

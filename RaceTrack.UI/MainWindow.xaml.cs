@@ -28,10 +28,10 @@ namespace RaceTrack
         public RaceManager RaceManager { get; set; }
         private VideoCaptureService _videoCaptureService { get; set; }
 
-        public MainWindow(EventAggregator eventAggregator)
+        public MainWindow(EventAggregator eventAggregator, RaceManagerDbService raceManagerDbService)
         {
             _videoCaptureService = new VideoCaptureService();
-            RaceManager = new RaceManager(eventAggregator, _videoCaptureService);
+            RaceManager = new RaceManager(eventAggregator, _videoCaptureService, raceManagerDbService);
             _videoCaptureService.FrameCaptured += VideoCaptureServiceOnFrameCaptured;
             InitializeComponent();
 

@@ -4,6 +4,7 @@ using RaceTrack.Core.Messaging;
 using RaceTrack.Core.Messaging.Messages;
 using RaceTrack.Core.Models;
 using RaceTrack.Core.Services;
+using RaceTrack.Db.Entities;
 
 namespace RaceTrack.Core;
 
@@ -11,18 +12,22 @@ public class RaceManager
 {
     private readonly EventAggregator _eventAggregator;
     private readonly IVideoCaptureService _videoCaptureService;
-    public DateTime? StartDate = null;
+    private readonly RaceManagerDbService _raceManagerDbService;
+    public DateTime? StartTime = null;
+    public DateTime? EndTime = null;
     public bool RaceOngoing = false;
     private readonly RaceVideoProcessor _raceVideoProcessor;
     public PlayerDataContainer Player1Data { get; set; }
     public PlayerDataContainer Player2Data { get; set; }
     public bool RaceIsStarting { get; set; }
     public int RaceLaps { get; set; } = 5;
+    public Race? Race { get; set; }
 
-    public RaceManager(EventAggregator eventAggregator, IVideoCaptureService videoCaptureService)
+    public RaceManager(EventAggregator eventAggregator, IVideoCaptureService videoCaptureService, RaceManagerDbService raceManagerDbService)
     {
         _eventAggregator = eventAggregator;
         _videoCaptureService = videoCaptureService;
+        _raceManagerDbService = raceManagerDbService;
         _raceVideoProcessor = new RaceVideoProcessor(_videoCaptureService, new LapDetectionService(this));
 
         Player1Data = new PlayerDataContainer("Mario");
@@ -169,13 +174,13 @@ public class RaceManager
         if (playerData.LapTimesCount == 0) // The first lap
         {
             // startdate vs currentlaptime, tells reaction speed
-            duration = currentLapTime - StartDate.Value;
+            duration = currentLapTime - StartTime.Value;
         }
 
         playerData.AddLapTime(new LapTime
         {
             LapNumber = playerData.LapTimesCount, Time = currentLapTime.ToString("HH:mm:ss.fff"),
-            Duration = duration, TotalRaceDuration = currentLapTime - StartDate.Value
+            Duration = duration, TotalRaceDuration = currentLapTime - StartTime.Value
         });
         if (playerData.LapTimesCount-1 == RaceLaps)
         {
@@ -250,7 +255,7 @@ public class RaceManager
         _eventAggregator.Publish(message);
 
         RaceIsStarting = false;
-        StartDate = DateTime.Now;
+        StartTime = DateTime.Now;
         RaceOngoing = true;
         await Task.Delay(2000);
         message.Light1Visible = false;
@@ -262,10 +267,12 @@ public class RaceManager
         
     }
 
-    public void StopRace()
+    public async Task StopRace()
     {
-        StartDate = null;
+        EndTime = DateTime.Now;
         RaceOngoing = false;
+        await _raceManagerDbService.SaveRace(this);
+        StartTime = null;
         _eventAggregator.Publish(new StartButtonStateMessage { IsEnabled = true });
     }
 
@@ -273,9 +280,29 @@ public class RaceManager
     {
         Player1Data.Reset();
         Player2Data.Reset();
-        StartDate = null;
+        StartTime = null;
         RaceOngoing = false;
         RaceIsStarting = false;
         _eventAggregator.Publish(new ResetRaceManagerMessage());
+    }
+
+    public int? GetWinnerOfLastRace()
+    {
+        if (Player1Data.Finished && Player2Data.Finished)
+        {
+            if (Player1Data.TotalRaceDuration < Player2Data.TotalRaceDuration)
+            {
+                // todo clean this
+                return 1;
+            }
+            else
+            {
+                return 2;
+            }
+        }
+        else
+        {
+            return null;
+        }
     }
 }

@@ -6,7 +6,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
+using RaceTrack.Core;
 using RaceTrack.Core.Messaging;
+using RaceTrack.Db;
 
 namespace RaceTrack
 {
@@ -30,6 +32,7 @@ namespace RaceTrack
             private void ConfigureServices(IServiceCollection services)
             {
                 services.AddSingleton<EventAggregator>();
+                services.AddSingleton<RaceManagerDbService>();
                 services.AddSingleton<MainWindow>();
             }
     }
