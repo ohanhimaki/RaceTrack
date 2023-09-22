@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RaceTrack.Core", "RaceTrack
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RaceTrack.Video", "RaceTrack.Video\RaceTrack.Video.csproj", "{72B8AB01-BED0-4D12-8AC3-212C2EEC089C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RaceTrack.Db", "RaceTrack.Db\RaceTrack.Db.csproj", "{5E06B936-A961-4268-A9E4-B786D8F792C7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{72B8AB01-BED0-4D12-8AC3-212C2EEC089C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{72B8AB01-BED0-4D12-8AC3-212C2EEC089C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{72B8AB01-BED0-4D12-8AC3-212C2EEC089C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5E06B936-A961-4268-A9E4-B786D8F792C7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5E06B936-A961-4268-A9E4-B786D8F792C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5E06B936-A961-4268-A9E4-B786D8F792C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5E06B936-A961-4268-A9E4-B786D8F792C7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
