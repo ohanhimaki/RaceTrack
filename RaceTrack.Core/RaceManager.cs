@@ -30,10 +30,10 @@ public class RaceManager
         _raceManagerDbService = raceManagerDbService;
         _raceVideoProcessor = new RaceVideoProcessor(_videoCaptureService, new LapDetectionService(this));
 
-        Player1Data = new PlayerDataContainer("Mario");
+        Player1Data = new PlayerDataContainer(new Player(){Name = "Mario"});
         Player1Data.LapTimeAdded += Player1DataOnLapTimeAdded;
         Player1Data.LapPointEdited += Player1LapPointEdited;
-        Player2Data = new PlayerDataContainer("Luigi");
+        Player2Data = new PlayerDataContainer(new Player(){Name = "Luigi"});
         Player2Data.LapTimeAdded += Player2DataOnLapTimeAdded;
         Player2Data.LapPointEdited += Player2LapPointEdited;
         UpdateRaceStatus();
@@ -50,22 +50,22 @@ public class RaceManager
         });
     }
 
-    public string SetPlayer1(string name)
+    public string SetPlayer1(Player player)
     {
         if (RaceIsStarting || RaceOngoing)
         {
             return "Ei voi vaihtaa nimeä";
         }
-        Player1Data.Name = name;
+        Player1Data.Player = player;
         return "";
     }
-    public string SetPlayer2(string name)
+    public string SetPlayer2(Player player)
     {
         if (RaceIsStarting || RaceOngoing)
         {
             return "Ei voi vaihtaa nimeä";
         }
-        Player2Data.Name = name;
+        Player2Data.Player = player;
         return "";
     }
 
@@ -203,10 +203,10 @@ public class RaceManager
         UpdateRaceStatus();
     }
 
-    public async void StartRace(int lapcount, string player1Name, string player2Name)
+    public async void StartRace(int lapcount, Player player1, Player player2)
     {
-        SetPlayer1(player1Name);
-        SetPlayer2(player2Name);
+        SetPlayer1(player1);
+        SetPlayer2(player2);
         RaceLaps = lapcount;
         var message = new RaceStartLightsMessage
         {

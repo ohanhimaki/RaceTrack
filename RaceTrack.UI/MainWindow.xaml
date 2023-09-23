@@ -7,10 +7,25 @@
         <!-- Webcam feed placeholder -->
         
         <Image Name="WebcamFeed" MouseUp="WebcamFeed_MouseUp" Stretch="Fill" HorizontalAlignment="Left" VerticalAlignment="Top"/>
-        <StackPanel VerticalAlignment="Top" HorizontalAlignment="Left" Margin="10" Background="Black" Opacity="0.7">
-            <TextBox Name="Player1NameInput" Width="200" Text="Mario"/>
+        <StackPanel Name="SetPlayerPanel" VerticalAlignment="Top" HorizontalAlignment="Left" Margin="10" Background="Black" Opacity="0.7">
+            <TextBox x:Name="newPlayerNameTextBox" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,5,0,0" Width="200" />
+            <Button Content="Add New Player" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" Margin="0,5,0,0" Click="AddNewPlayerButton_Click"/>
+            <ComboBox x:Name="Player1ComboBox" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" Margin="0,5,0,0">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Name}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+
             <Button Name="btnSetPointPlayer1" Content="Aseta pelaaja 1" Click="btnSetPointPlayer1_Click" Margin="10" />
-            <TextBox Name="Player2NameInput" Width="200" Text="Luigi"/>
+            <ComboBox x:Name="Player2ComboBox" HorizontalAlignment="Left" VerticalAlignment="Top" Width="200" Margin="0,5,0,0">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Name}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
             <Button Name="btnSetPointPlayer2" Content="Aseta pelaaja 2" Click="btnSetPointPlayer2_Click" Margin="10" />
         </StackPanel>
         <StackPanel VerticalAlignment="Top" HorizontalAlignment="Right" Margin="10">

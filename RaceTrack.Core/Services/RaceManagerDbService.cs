@@ -40,7 +40,7 @@ public class RaceManagerDbService
             2 => Player2,
             _ => null
         };
-        race.Status = RaceStatus.Completed;
+        race.EnumStatus = RaceStatus.Completed;
 
         race.Laps = GetLaps(raceManager, Player1, Player2);
 
@@ -97,5 +97,18 @@ public class RaceManagerDbService
 
         raceTrackDbContext.Players.Add(player);
         return player;
+    }
+    public void AddPlayer(string playerName)
+    {
+        using var raceTrackDbContext = new RaceTrackDbContext();
+        var newPlayer = new Player { Name = playerName };
+        raceTrackDbContext.Players.Add(newPlayer);
+        raceTrackDbContext.SaveChanges();
+    }
+
+    public List<Player> GetPlayers()
+    {
+        using var raceTrackDbContext = new RaceTrackDbContext();
+        return raceTrackDbContext.Players.ToList();
     }
 }

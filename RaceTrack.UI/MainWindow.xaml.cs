@@ -9,6 +9,7 @@ using RaceTrack.Core.Models;
 using RaceTrack.Core.Messaging;
 using RaceTrack.Core.Messaging.Messages;
 using RaceTrack.Core.Services;
+using RaceTrack.Db.Entities;
 using RaceTrack.Video.Services;
 
 namespace RaceTrack
@@ -18,6 +19,7 @@ namespace RaceTrack
     /// </summary>
     public partial class MainWindow : Window
     {
+        private readonly RaceManagerDbService _raceManagerDbService;
         private bool _settingPointForPlayer1;
         private bool _settingPointForPlayer2;
 
@@ -30,6 +32,7 @@ namespace RaceTrack
 
         public MainWindow(EventAggregator eventAggregator, RaceManagerDbService raceManagerDbService)
         {
+            _raceManagerDbService = raceManagerDbService;
             _videoCaptureService = new VideoCaptureService();
             RaceManager = new RaceManager(eventAggregator, _videoCaptureService, raceManagerDbService);
             _videoCaptureService.FrameCaptured += VideoCaptureServiceOnFrameCaptured;
@@ -38,6 +41,7 @@ namespace RaceTrack
             // Initialize the lap times collection
             LapTimesListPlayer1.ItemsSource = _lapTimesPlayer1;
             LapTimesListPlayer2.ItemsSource = _lapTimesPlayer2;
+            LoadPlayers();
 
             try
             {
@@ -196,7 +200,32 @@ namespace RaceTrack
             else
             {
                 RaceManager.StartRace(int.Parse((RaceLapSetting.SelectedItem as ComboBoxItem).Content.ToString()),
-                    Player1NameInput.Text, Player2NameInput.Text);
+                    (Player)Player1ComboBox.SelectedItem, (Player)Player2ComboBox.SelectedItem);
+            }
+        }
+        
+        private void LoadPlayers()
+        {
+            // Fetch players from the database
+            var players = _raceManagerDbService.GetPlayers();
+
+            // Assign to ComboBox's ItemsSource
+            Player1ComboBox.ItemsSource = players;
+            Player2ComboBox.ItemsSource = players;
+        }
+        private void AddNewPlayerButton_Click(object sender, RoutedEventArgs e)
+        {
+            var playerName = newPlayerNameTextBox.Text;
+        
+            if (!string.IsNullOrEmpty(playerName))
+            {
+                _raceManagerDbService.AddPlayer(playerName);
+                LoadPlayers();
+                newPlayerNameTextBox.Clear();
+            }
+            else
+            {
+                MessageBox.Show("Please enter a valid player name.");
             }
         }
     }

@@ -15,7 +15,7 @@ public class PlayerDataContainer
 
     public List<LapTime> LapTimes { get; set; } = new List<LapTime>();
 
-    public string Name { get; set; }
+    public string Name  => Player?.Name ?? "No name";
     
     // get laptimes count
     public int LapTimesCount => LapTimes.Count;
@@ -23,9 +23,9 @@ public class PlayerDataContainer
     public Player? Player { get; set; }
 
 
-    public PlayerDataContainer(string name)
+    public PlayerDataContainer(Player player)
     {
-        Name = name;
+        Player = player;
     }
     
     //action for parent to subscribe to
