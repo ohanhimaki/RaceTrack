@@ -7,7 +7,7 @@ namespace RaceTrack.Video.Services
     public class VideoCaptureService : IVideoCaptureService
     {
         private VideoCapture _capture;
-        private Mat _currentFrame;
+        private Mat? _currentFrame;
 
         public event EventHandler<FrameCapturedEventArgs> FrameCaptured;
 
@@ -42,6 +42,7 @@ namespace RaceTrack.Video.Services
 
             return cameraList;
         }
+
         public void SetCamera(int cameraIndex)
         {
             _capture.Stop();
@@ -49,8 +50,7 @@ namespace RaceTrack.Video.Services
             _capture.ImageGrabbed += Capture_ImageGrabbed;
             _capture.Start();
         }
-        
-        
+
 
         private void Capture_ImageGrabbed(object sender, EventArgs e)
         {
@@ -58,10 +58,24 @@ namespace RaceTrack.Video.Services
             FrameCaptured?.Invoke(this, new FrameCapturedEventArgs { Frame = _currentFrame.Clone() });
         }
 
+
         public void Dispose()
         {
             _currentFrame?.Dispose();
             _capture?.Dispose();
+        }
+
+        public Task<string> GetCurrentFrame()
+        {
+            while (_currentFrame.IsEmpty)
+            {
+                // wait for frame to be captured
+            }
+
+            var basePath = @".\Images\";
+            var fileName = basePath + "latest" + ".jpg";
+            _currentFrame.Save(fileName);
+            return Task.FromResult(fileName);
         }
     }
 }

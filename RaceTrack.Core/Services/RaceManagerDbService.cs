@@ -1,4 +1,5 @@
-﻿using RaceTrack.Db;
+﻿using Microsoft.EntityFrameworkCore;
+using RaceTrack.Db;
 using RaceTrack.Db.Entities;
 
 namespace RaceTrack.Core;
@@ -105,10 +106,24 @@ public class RaceManagerDbService
         raceTrackDbContext.Players.Add(newPlayer);
         raceTrackDbContext.SaveChanges();
     }
+    public async Task AddPlayerAsync(string playerName)
+    {
+        using var raceTrackDbContext = new RaceTrackDbContext();
+        var newPlayer = new Player { Name = playerName };
+        raceTrackDbContext.Players.Add(newPlayer);
+        await raceTrackDbContext.SaveChangesAsync();
+        return;
+    }
 
     public List<Player> GetPlayers()
     {
         using var raceTrackDbContext = new RaceTrackDbContext();
         return raceTrackDbContext.Players.ToList();
+    }
+
+    public async Task<IEnumerable<Player>> GetPlayersAsync()
+    {
+        using var raceTrackDbContext = new RaceTrackDbContext();
+        return await raceTrackDbContext.Players.ToListAsync();
     }
 }

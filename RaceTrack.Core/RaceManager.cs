@@ -29,6 +29,7 @@ public class RaceManager
         _videoCaptureService = videoCaptureService;
         _raceManagerDbService = raceManagerDbService;
         _raceVideoProcessor = new RaceVideoProcessor(_videoCaptureService, new LapDetectionService(this));
+        _videoCaptureService.StartCapture();
 
         Player1Data = new PlayerDataContainer(new Player(){Name = "Mario"});
         Player1Data.LapTimeAdded += Player1DataOnLapTimeAdded;

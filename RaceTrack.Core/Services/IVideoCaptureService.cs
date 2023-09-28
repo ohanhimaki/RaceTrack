@@ -8,6 +8,7 @@ public interface IVideoCaptureService
     void StartCapture();
     void StopCapture();
     void Dispose();
+    Task<string> GetCurrentFrame();
 }
 
 public class FrameCapturedEventArgs : EventArgs
