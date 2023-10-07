@@ -10,32 +10,35 @@ namespace RaceTrack.Host.Controllers;
 [Route("[controller]")]
 public class RaceManagerController : ControllerBase
 {
-    private readonly RaceManagerDbService _raceManagerDbService;
     private readonly RaceManager _raceManager;
-    private readonly IVideoCaptureService _videoCaptureService;
 
-    public RaceManagerController(RaceManagerDbService raceManagerDbService, RaceManager raceManager,
-        IVideoCaptureService videoCaptureService)
+    public RaceManagerController(RaceManager raceManager)
     {
-        _raceManagerDbService = raceManagerDbService;
         _raceManager = raceManager;
-        _videoCaptureService = videoCaptureService;
     }
     [HttpGet("[action]")]
-    public async Task<IEnumerable<Player>> GetRaceManagerStatus()
+    public async Task<RaceManagerStatus> GetRaceManagerStatus()
     {
-        //todo
-        var players = await _raceManagerDbService.GetPlayersAsync();
-        return players;
+        var raceManagerStatus = _raceManager.GetStatus();
+        return raceManagerStatus;
     }
-    [HttpGet("[action]")]
-    public async Task<IActionResult> GetLatestImage()
+    
+    [HttpPost("[action]")]
+    public async Task<RaceManagerStatus> StartRace()
     {
-        //TODO fix this 
-        var currentFrame = await _videoCaptureService.GetCurrentFrame();
-        var file = System.IO.File.OpenRead(currentFrame);
-        
-        return File(file, "image/jpeg");
+        await _raceManager.StartRace();
+        var raceManagerStatus = _raceManager.GetStatus();
+        return raceManagerStatus;
+    }
+    
+    
+    // set lapCount
+    [HttpPost("[action]")]
+    public async Task<RaceManagerStatus> SetLapCount(int laps)
+    {
+        _raceManager.RaceLaps = laps;
+        var raceManagerStatus = _raceManager.GetStatus();
+        return raceManagerStatus;
     }
     
 }

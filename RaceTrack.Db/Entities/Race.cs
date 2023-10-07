@@ -40,5 +40,6 @@ public enum RaceStatus
     NotStarted,
     Ongoing,
     Completed,
-    Cancelled
+    Cancelled,
+    Starting
 }

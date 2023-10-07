@@ -15,13 +15,14 @@ public class RaceManager
     private readonly RaceManagerDbService _raceManagerDbService;
     public DateTime? StartTime = null;
     public DateTime? EndTime = null;
-    public bool RaceOngoing = false;
     private readonly RaceVideoProcessor _raceVideoProcessor;
     public PlayerDataContainer Player1Data { get; set; }
     public PlayerDataContainer Player2Data { get; set; }
-    public bool RaceIsStarting { get; set; }
+    public RaceStatus RaceStatus { get; set; }
     public int RaceLaps { get; set; } = 5;
     public Race? Race { get; set; }
+    public bool RaceIsStarting => RaceStatus == RaceStatus.Starting;
+    public bool RaceOngoing => RaceStatus == RaceStatus.Ongoing;
 
     public RaceManager(EventAggregator eventAggregator, IVideoCaptureService videoCaptureService, RaceManagerDbService raceManagerDbService)
     {
@@ -204,74 +205,78 @@ public class RaceManager
         UpdateRaceStatus();
     }
 
+    public async Task StartRace()
+    {
+                var message = new RaceStartLightsMessage
+                {
+                    Light1Fill = Color.Gray,
+                    Light2Fill = Color.Gray,
+                    Light3Fill = Color.Gray,
+                    Light4Fill = Color.Gray,
+                    Light5Fill = Color.Gray,
+                    Light1Visible = true,
+                    Light2Visible = true,
+                    Light3Visible = true,
+                    Light4Visible = true,
+                    Light5Visible = true,
+                    StartButtonEnabled = false
+                };
+                RaceStatus = RaceStatus.Starting;
+                _eventAggregator.Publish(message);
+        
+                // Light up each red light every second
+                message.Light1Fill = Color.Red;
+                _eventAggregator.Publish(message);
+                await Task.Delay(1000);
+                message.Light2Fill = Color.Red;
+                _eventAggregator.Publish(message);
+                await Task.Delay(1000);
+                message.Light3Fill = Color.Red;
+                _eventAggregator.Publish(message);
+                await Task.Delay(1000);
+                message.Light4Fill = Color.Red;
+                _eventAggregator.Publish(message);
+                await Task.Delay(1000);
+                message.Light5Fill = Color.Red;
+                _eventAggregator.Publish(message);
+        
+                // Wait for a random time between 0.2 to 3 seconds
+                Random random = new Random();
+                int randomDelay = random.Next(200, 3001); // Between 0.2 to 3 seconds
+                await Task.Delay(randomDelay);
+        
+                // Extinguish the lights and start the race
+                message.Light1Fill = Color.Gray;
+                message.Light2Fill = Color.Gray;
+                message.Light3Fill = Color.Gray;
+                message.Light4Fill = Color.Gray;
+                message.Light5Fill = Color.Gray;
+                _eventAggregator.Publish(message);
+        
+                StartTime = DateTime.Now;
+                RaceStatus = RaceStatus.Ongoing;
+                await Task.Delay(2000);
+                message.Light1Visible = false;
+                message.Light2Visible = false;
+                message.Light3Visible = false;
+                message.Light4Visible = false;
+                message.Light5Visible = false;
+                _eventAggregator.Publish(message);
+                
+    }
+
     public async void StartRace(int lapcount, Player player1, Player player2)
     {
         SetPlayer1(player1);
         SetPlayer2(player2);
         RaceLaps = lapcount;
-        var message = new RaceStartLightsMessage
-        {
-            Light1Fill = Color.Gray,
-            Light2Fill = Color.Gray,
-            Light3Fill = Color.Gray,
-            Light4Fill = Color.Gray,
-            Light5Fill = Color.Gray,
-            Light1Visible = true,
-            Light2Visible = true,
-            Light3Visible = true,
-            Light4Visible = true,
-            Light5Visible = true,
-            StartButtonEnabled = false
-        };
-        RaceIsStarting = true;
-        _eventAggregator.Publish(message);
-
-        // Light up each red light every second
-        message.Light1Fill = Color.Red;
-        _eventAggregator.Publish(message);
-        await Task.Delay(1000);
-        message.Light2Fill = Color.Red;
-        _eventAggregator.Publish(message);
-        await Task.Delay(1000);
-        message.Light3Fill = Color.Red;
-        _eventAggregator.Publish(message);
-        await Task.Delay(1000);
-        message.Light4Fill = Color.Red;
-        _eventAggregator.Publish(message);
-        await Task.Delay(1000);
-        message.Light5Fill = Color.Red;
-        _eventAggregator.Publish(message);
-
-        // Wait for a random time between 0.2 to 3 seconds
-        Random random = new Random();
-        int randomDelay = random.Next(200, 3001); // Between 0.2 to 3 seconds
-        await Task.Delay(randomDelay);
-
-        // Extinguish the lights and start the race
-        message.Light1Fill = Color.Gray;
-        message.Light2Fill = Color.Gray;
-        message.Light3Fill = Color.Gray;
-        message.Light4Fill = Color.Gray;
-        message.Light5Fill = Color.Gray;
-        _eventAggregator.Publish(message);
-
-        RaceIsStarting = false;
-        StartTime = DateTime.Now;
-        RaceOngoing = true;
-        await Task.Delay(2000);
-        message.Light1Visible = false;
-        message.Light2Visible = false;
-        message.Light3Visible = false;
-        message.Light4Visible = false;
-        message.Light5Visible = false;
-        _eventAggregator.Publish(message);
-        
+        StartRace();
     }
 
     public async Task StopRace()
     {
         EndTime = DateTime.Now;
-        RaceOngoing = false;
+        RaceStatus = RaceStatus.Completed;
         await _raceManagerDbService.SaveRace(this);
         StartTime = null;
         _eventAggregator.Publish(new StartButtonStateMessage { IsEnabled = true });
@@ -282,8 +287,7 @@ public class RaceManager
         Player1Data.Reset();
         Player2Data.Reset();
         StartTime = null;
-        RaceOngoing = false;
-        RaceIsStarting = false;
+        RaceStatus = RaceStatus.NotStarted;
         _eventAggregator.Publish(new ResetRaceManagerMessage());
     }
 
@@ -306,4 +310,29 @@ public class RaceManager
             return null;
         }
     }
+
+    public RaceManagerStatus GetStatus()
+    {
+        return new RaceManagerStatus()
+        {
+            RaceStatus = RaceStatus,
+            RaceLaps = RaceLaps,
+            Player1Name = Player1Data.Name,
+            Player2Name = Player2Data.Name,
+            Player1Laps = Player1Data.LapTimes,
+            Player2Laps = Player2Data.LapTimes,
+        };
+
+    }
+}
+
+public class RaceManagerStatus
+{
+    public RaceStatus RaceStatus { get; set; }
+    public string RaceStatusString => RaceStatus.ToString();
+    public int RaceLaps { get; set; }
+    public string Player1Name { get; set; }
+    public string Player2Name { get; set; }
+    public List<LapTime> Player1Laps { get; set; }
+    public List<LapTime> Player2Laps { get; set; }
 }
